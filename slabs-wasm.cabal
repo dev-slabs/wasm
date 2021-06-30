@@ -1,0 +1,174 @@
+cabal-version: 2.2
+
+name:           slabs-wasm
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/wasm#readme>
+homepage:       https://github.com/githubuser/wasm#readme
+bug-reports:    https://github.com/githubuser/wasm/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2019 Author name here
+-- license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/wasm
+
+common common
+  build-depends:       base
+
+  default-language:    Haskell2010
+
+  default-extensions:  BlockArguments
+                       DataKinds
+                       FlexibleContexts
+                       GADTs
+                       LambdaCase
+                       PolyKinds
+                       RankNTypes
+                       ScopedTypeVariables
+                       TypeApplications
+                       TypeOperators
+                       TypeApplications
+
+  ghc-options:         -O2
+                       -flate-specialise
+                       -fspecialise-aggressively
+
+library
+  import:           common
+  exposed-modules:
+      Slabs.Wasm.Structure
+      Slabs.Wasm.Binary
+  other-modules:
+      Paths_slabs_wasm
+  hs-source-dirs:
+      src
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleInstances FunctionalDependencies GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms RankNTypes RecordWildCards StandaloneDeriving TupleSections TypeSynonymInstances ViewPatterns
+  build-depends:
+      aeson
+    , ansi-wl-pprint
+    , array
+    , async
+    , attoparsec
+    , attoparsec-binary
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , cborg
+    , cereal
+    -- , cereal-conduit
+    , cereal-io-streams
+    , concurrent-output
+    , conduit
+    , conduit-extra
+    , containers
+    , co-log
+    , cryptonite
+    , data-default
+    , deepseq
+    , Decimal
+    , directory
+    , deriving-aeson
+    , ethereum-rlp
+    , extra
+    , formatting
+    , hashable
+    , io-streams
+    , lens
+    , lens-aeson
+    , megaparsec
+    , memory
+    , mmorph
+    , modern-uri
+    , mtl
+    , network
+    , network-transport
+    , network-transport-tcp
+    , nibblestring
+    , pact
+    , parser-combinators
+    , prettyprinter
+    , random
+    , reflection
+    , resourcet
+    , safecopy
+    , safe-exceptions
+    , scientific
+    , serokell-util
+    , stm
+    , streaming-commons
+    , temporary
+    , text
+    , thread-supervisor
+    , thyme
+    , universum
+    , unordered-containers
+    , Z-Data
+    , Z-IO
+    -- , Z-Botan
+
+test-suite test
+  import:           common
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Accumulator.PositionSpec
+      Database.RocksDBSpec
+      MapStoreSpec
+      PGSpec
+      RocksSpec
+      Paths_slabs_wasm
+      Slabs.CodeGenSpec
+      Slabs.Network.TransportSpec
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N 
+  build-depends:
+      HUnit
+    , aeson
+    , ansi-wl-pprint
+    , array
+    , attoparsec
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , cborg
+    , cereal
+    , cereal-conduit
+    , conduit
+    , conduit-extra
+    , containers
+    , cryptonite                     
+    , temporary
+    , directory
+    , extra
+    , filepath
+    , deepseq
+    , ethereum-rlp
+    , formatting
+    , hspec
+    , QuickCheck
+    , lens
+    , memory
+    , mtl
+    , nibblestring
+    , pact
+    , quickcheck-instances
+    , resourcet
+    , safecopy
+    , scientific
+    , serokell-util
+    , slabs-wasm
+    , stm
+    , streaming-commons
+    , text
+    , universum
+    , unliftio
+    , unordered-containers
