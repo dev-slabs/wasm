@@ -10,69 +10,6 @@ import qualified Control.Monad.Combinators as P
 import Z.Data.Builder (Builder)
 import qualified Z.Data.Builder as B 
 
-parseTypeIdx :: Parser TypeIdx
-parseTypeIdx = do i <- parseU32
-                  pure i
-
-buildTypeIdx :: TypeIdx -> Builder ()
-buildTypeIdx i = buildU32 i
-
-parseFuncIdx :: Parser FuncIdx
-parseFuncIdx = do i <- parseU32
-                  pure i
-
-buildFuncIdx :: FuncIdx -> Builder ()
-buildFuncIdx i = buildU32 i
-
-parseTableIdx :: Parser TableIdx
-parseTableIdx = do i <- parseU32
-                   pure i
-
-buildTableIdx :: TableIdx -> Builder ()
-buildTableIdx i = buildU32 i
-
-parseMemIdx :: Parser MemIdx
-parseMemIdx = do i <- parseU32
-                 pure i
-
-buildMemIdx :: MemIdx -> Builder ()
-buildMemIdx i = buildU32 i
-
-parseGlobalIdx :: Parser GlobalIdx
-parseGlobalIdx = do i <- parseU32
-                    pure i
-
-buildGlobalIdx :: GlobalIdx -> Builder ()
-buildGlobalIdx i = buildU32 i
-
-parseElemIdx :: Parser ElemIdx
-parseElemIdx = do i <- parseU32
-                  pure i
-
-buildElemIdx :: ElemIdx -> Builder ()
-buildElemIdx i = buildU32 i
-
-parseDataIdx :: Parser DataIdx
-parseDataIdx = do i <- parseU32
-                  pure i
-
-buildDataIdx :: DataIdx -> Builder ()
-buildDataIdx i = buildU32 i
-
-parseLocalIdx :: Parser LocalIdx
-parseLocalIdx = do i <- parseU32
-                   pure i
-
-buildLocalIdx :: LocalIdx -> Builder ()
-buildLocalIdx i = buildU32 i
-
-parseLabelIdx :: Parser LabelIdx
-parseLabelIdx = do i <- parseU32
-                   pure i
-
-buildLabelIdx :: LabelIdx -> Builder ()
-buildLabelIdx i = buildU32 i
-
 parseNumType :: Parser NumType
 parseNumType = P.choice [do P.word8 127
                             pure I32, do P.word8 126
@@ -138,11 +75,10 @@ buildLimits (Limits n (Just m)) = do B.word8 1
                                      buildU32 m
 
 parseMemType :: Parser MemType
-parseMemType = do lim <- parseLimits
-                  pure lim
+parseMemType = parseLimits
 
 buildMemType :: MemType -> Builder ()
-buildMemType lim = buildLimits lim
+buildMemType = buildLimits
 
 parseTableType :: Parser TableType
 parseTableType = do et <- parseRefType
@@ -789,6 +725,60 @@ buildNumInstr' I64TruncSatF32S = buildU32 4
 buildNumInstr' I64TruncSatF32U = buildU32 5
 buildNumInstr' I64TruncSatF64S = buildU32 6
 buildNumInstr' I64TruncSatF64U = buildU32 7
+
+parseTypeIdx :: Parser TypeIdx
+parseTypeIdx = parseU32
+
+buildTypeIdx :: TypeIdx -> Builder ()
+buildTypeIdx = buildU32
+
+parseFuncIdx :: Parser FuncIdx
+parseFuncIdx = parseU32
+
+buildFuncIdx :: FuncIdx -> Builder ()
+buildFuncIdx = buildU32
+
+parseTableIdx :: Parser TableIdx
+parseTableIdx = parseU32
+
+buildTableIdx :: TableIdx -> Builder ()
+buildTableIdx = buildU32
+
+parseMemIdx :: Parser MemIdx
+parseMemIdx = parseU32
+
+buildMemIdx :: MemIdx -> Builder ()
+buildMemIdx = buildU32
+
+parseGlobalIdx :: Parser GlobalIdx
+parseGlobalIdx = parseU32
+
+buildGlobalIdx :: GlobalIdx -> Builder ()
+buildGlobalIdx = buildU32
+
+parseElemIdx :: Parser ElemIdx
+parseElemIdx = parseU32
+
+buildElemIdx :: ElemIdx -> Builder ()
+buildElemIdx = buildU32
+
+parseDataIdx :: Parser DataIdx
+parseDataIdx = parseU32
+
+buildDataIdx :: DataIdx -> Builder ()
+buildDataIdx = buildU32
+
+parseLocalIdx :: Parser LocalIdx
+parseLocalIdx = parseU32
+
+buildLocalIdx :: LocalIdx -> Builder ()
+buildLocalIdx = buildU32
+
+parseLabelIdx :: Parser LabelIdx
+parseLabelIdx = parseU32
+
+buildLabelIdx :: LabelIdx -> Builder ()
+buildLabelIdx = buildU32
 
 -- 解析Instr
 parseInstr :: Parser Instr

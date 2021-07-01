@@ -6,33 +6,6 @@ imports
   Slabs.Wasm.Internal
 
 defbin 
-  TypeIdx
-    i:U32 -> i
-  
-  FuncIdx
-    i:U32 -> i
-  
-  TableIdx
-    i:U32 -> i
-  
-  MemIdx
-    i:U32 -> i
-  
-  GlobalIdx
-    i:U32 -> i
-  
-  ElemIdx
-    i:U32 -> i
-  
-  DataIdx
-    i:U32 -> i
-  
-  LocalIdx
-    i:U32 -> i
-  
-  LabelIdx
-    i:U32 -> i
-
   NumType
     0x7F -> I32
     0x7E -> I64
@@ -310,6 +283,33 @@ defbin
     5:U32 -> I64TruncSatF32U 
     6:U32 -> I64TruncSatF64S 
     7:U32 -> I64TruncSatF64U
+
+  TypeIdx
+    i:U32 -> i
+  
+  FuncIdx
+    i:U32 -> i
+  
+  TableIdx
+    i:U32 -> i
+  
+  MemIdx
+    i:U32 -> i
+  
+  GlobalIdx
+    i:U32 -> i
+  
+  ElemIdx
+    i:U32 -> i
+  
+  DataIdx
+    i:U32 -> i
+  
+  LocalIdx
+    i:U32 -> i
+  
+  LabelIdx
+    i:U32 -> i
 
 %%
   -- 解析Instr
