@@ -284,6 +284,7 @@ defbin
     6:U32 -> I64TruncSatF64S 
     7:U32 -> I64TruncSatF64U
 
+  ; modules
   TypeIdx
     i:U32 -> i
   
@@ -310,6 +311,15 @@ defbin
   
   LabelIdx
     i:U32 -> i
+
+  Magic:()
+    0x00 0x61 0x73 0x6D
+  
+  Version:()
+    0x10 0x00 0x00 0x00
+
+  Module
+    Magic Version _:*(Custom) -> Module [] [] [] [] [] [] [] Nothing [] []
 
 %%
   -- 解析Instr

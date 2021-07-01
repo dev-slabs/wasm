@@ -18,7 +18,7 @@ buildU64 :: Word64 -> Builder ()
 buildU64 = word64LEB128
 
 parseF32 :: Parser Float
-parseF32 = anyWord32leb128
+parseF32 = pure 1  -- TODO
 
 buildF32 :: Float -> Builder ()
 buildF32 = word32LEB128
@@ -46,3 +46,30 @@ checkEq p a = do
     if a == v
         then return v
         else fail $ "not equal: " <> show a
+
+parseBytes :: Parser Bytes
+parseBytes = undefined
+
+buildBytes :: Bytes -> Builder ()
+buildBytes bs = undefined
+
+parseName :: Parser Text
+parseName = undefined
+
+buildName :: Text -> Builder ()
+buildName = undefined
+
+parseSection :: Word8 -> Parser a -> Parser a
+parseSection n p = do
+  P.word8 n
+  size <- parseU32
+  bs <- P.tokens size
+  P.parse (p >> P.eof) bs
+
+buildSection :: Word8 -> (a -> Builder ()) -> a -> Builder ()
+buildSection n b a = do
+  B.word8 n
+  let bs = B.build b a
+      size = length bs
+  buildU32 size
+  chunk bs
