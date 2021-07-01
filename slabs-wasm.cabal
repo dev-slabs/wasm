@@ -46,6 +46,7 @@ library
       Slabs.Wasm.Structure
       Slabs.Wasm.Binary
   other-modules:
+      Slabs.Wasm.Internal
       Paths_slabs_wasm
   hs-source-dirs:
       src
@@ -101,6 +102,7 @@ library
     , safe-exceptions
     , scientific
     , serokell-util
+    , slabs-core
     , stm
     , streaming-commons
     , temporary

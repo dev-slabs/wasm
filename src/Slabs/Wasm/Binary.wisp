@@ -3,8 +3,36 @@ module Slabs.Wasm.Binary
 imports 
   Universum
   Slabs.Wasm.Structure
+  Slabs.Wasm.Internal
 
 defbin 
+  TypeIdx
+    i:U32 -> i
+  
+  FuncIdx
+    i:U32 -> i
+  
+  TableIdx
+    i:U32 -> i
+  
+  MemIdx
+    i:U32 -> i
+  
+  GlobalIdx
+    i:U32 -> i
+  
+  ElemIdx
+    i:U32 -> i
+  
+  DataIdx
+    i:U32 -> i
+  
+  LocalIdx
+    i:U32 -> i
+  
+  LabelIdx
+    i:U32 -> i
+
   NumType
     0x7F -> I32
     0x7E -> I64
@@ -130,20 +158,187 @@ defbin
     10:U32 0x00 0x00 -> MemoryCopy
     11:U32 0x00 -> MemoryFill
 
-  ; TODO
   NumInstr
     0x41 n:U32 -> I32Const n
     0x42 n:U64 -> I64Const n
+    0x43 z:F32 -> F32Const z
+    0x44 z:F64 -> F64Const z
 
+    0x45 -> I32Eqz
+    0x46 -> I32RelOp IEq
+    0x47 -> I32RelOp INe
+    0x48 -> I32RelOp ILtS
+    0x49 -> I32RelOp ILtU
+    0x4A -> I32RelOp IGtS
+    0x4B -> I32RelOp IGtU
+    0x4C -> I32RelOp ILeS
+    0x4D -> I32RelOp ILeU
+    0x4E -> I32RelOp IGeS
+    0x4F -> I32RelOp IGeU
 
-  Instr
-    i:MemoryInstr -> MemoryInstr i
-    i:CtlInstr -> CtlInstr i
-    i:RefInstr -> RefInstr i
-    0xFC i:Instr' -> i
+    0x50 -> I64Eqz
+    0x51 -> I64RelOp IEq
+    0x52 -> I64RelOp INe
+    0x53 -> I64RelOp ILtS
+    0x54 -> I64RelOp ILtU
+    0x55 -> I64RelOp IGtS
+    0x56 -> I64RelOp IGtU
+    0x57 -> I64RelOp ILeS
+    0x58 -> I64RelOp ILeU
+    0x59 -> I64RelOp IGeS
+    0x5A -> I64RelOp IGeU
 
-  Instr': Instr
-    i:NumInstr' -> NumInstr' i
-    i:TableInstr' -> TableInstr' i
-    i:MemoryInstr' -> MemoryInstr' i
-    
+    0x5B -> F32RelOp FEq
+    0x5C -> F32RelOp FNe
+    0x5D -> F32RelOp FLt
+    0x5E -> F32RelOp FGt
+    0x5F -> F32RelOp FLe
+    0x60 -> F32RelOp FGe
+
+    0x61 -> F64RelOp FEq
+    0x62 -> F64RelOp FNe
+    0x63 -> F64RelOp FLt
+    0x64 -> F64RelOp FGt
+    0x65 -> F64RelOp FLe
+    0x66 -> F64RelOp FGe
+
+    0x67 -> I32UnOp IClz 
+    0x68 -> I32UnOp ICtz 
+    0x69 -> I32UnOp IPopcnt 
+    0x6A -> I32BinOp IAdd 
+    0x6B -> I32BinOp ISub 
+    0x6C -> I32BinOp IMul 
+    0x6D -> I32BinOp IDivS 
+    0x6E -> I32BinOp IDivU 
+    0x6F -> I32BinOp IRemS 
+    0x70 -> I32BinOp IRemU 
+    0x71 -> I32BinOp IAnd 
+    0x72 -> I32BinOp IOr 
+    0x73 -> I32BinOp IXor 
+    0x74 -> I32BinOp IShl 
+    0x75 -> I32BinOp IShrS 
+    0x76 -> I32BinOp IShrU 
+    0x77 -> I32BinOp IRotl 
+    0x78 -> I32BinOp IRotr
+  
+    0x79 -> I64UnOp IClz
+    0x7A -> I64UnOp ICtz
+    0x7B -> I64UnOp IPopcnt
+    0x7C -> I64BinOp IAdd
+    0x7D -> I64BinOp ISub
+    0x7E -> I64BinOp IMul
+    0x7F -> I64BinOp IDivS
+    0x80 -> I64BinOp IDivU
+    0x81 -> I64BinOp IRemS 
+    0x82 -> I64BinOp IRemU 
+    0x83 -> I64BinOp IAnd
+    0x84 -> I64BinOp IOr
+    0x85 -> I64BinOp IXor
+    0x86 -> I64BinOp IShl
+    0x87 -> I64BinOp IShrS
+    0x88 -> I64BinOp IShrU
+    0x89 -> I64BinOp IRotl
+    0x8A -> I64BinOp IRotr
+
+    0x8B -> F32UnOp FAbs
+    0x8C -> F32UnOp FNeg
+    0x8D -> F32UnOp FCeil
+    0x8E -> F32UnOp FFloor
+    0x8F -> F32UnOp FTrunc
+    0x90 -> F32UnOp FNearest 
+    0x91 -> F32UnOp FSqrt
+    0x92 -> F32BinOp FAdd
+    0x93 -> F32BinOp FSub
+    0x94 -> F32BinOp FMul
+    0x95 -> F32BinOp FDiv
+    0x96 -> F32BinOp FMin
+    0x97 -> F32BinOp FMax
+    0x98 -> F32BinOp FCopysign
+
+    0x99 -> F64UnOp FAbs
+    0x9A -> F64UnOp FNeg
+    0x9B -> F64UnOp FCeil
+    0x9C -> F64UnOp FFloor
+    0x9D -> F64UnOp FTrunc
+    0x9E -> F64UnOp FNearest 
+    0x9F -> F64UnOp FSqrt
+    0xA0 -> F64BinOp FAdd
+    0xA1 -> F64BinOp FSub
+    0xA2 -> F64BinOp FMul
+    0xA3 -> F64BinOp FDiv
+    0xA4 -> F64BinOp FMin
+    0xA5 -> F64BinOp FMax
+    0xA6 -> F64BinOp FCopysign
+
+    0xA7 -> I32WrapI64
+    0xA8 -> I32TruncF32S
+    0xA9 -> I32TruncF32U
+    0xAA -> I32TruncF64S
+    0xAB -> I32TruncF64U
+    0xAC -> I64ExtendI32S
+    0xAD -> I64ExtendI32U
+    0xAE -> I64TruncF32S
+    0xAF -> I64TruncF32U
+    0xB0 -> I64TruncF64S
+    0xB1 -> I64TruncF64U
+    0xB2 -> F32ConvertI32S 
+    0xB3 -> F32ConvertI32U 
+    0xB4 -> F32ConvertI64S 
+    0xB5 -> F32ConvertI64U 
+    0xB6 -> F32DemoteF64
+    0xB7 -> F64ConvertI32S 
+    0xB8 -> F64ConvertI32U 
+    0xB9 -> F64ConvertI64S 
+    0xBA -> F64ConvertI64U 
+    0xBB -> F64PromoteF32
+    0xBC -> I32ReinterpretF32 
+    0xBD -> I64ReinterpretF64 
+    0xBE -> F32ReinterpretI32 
+    0xBF -> F64ReinterpretI64
+    0xC0 -> I32Extend8S 
+    0xC1 -> I32Extend16S 
+    0xC2 -> I64Extend8S 
+    0xC3 -> I64Extend16S 
+    0xC4 -> I64Extend32S
+
+  NumInstr'
+    0:U32 -> I32TruncSatF32S 
+    1:U32 -> I32TruncSatF32U 
+    2:U32 -> I32TruncSatF64S 
+    3:U32 -> I32TruncSatF64U 
+    4:U32 -> I64TruncSatF32S 
+    5:U32 -> I64TruncSatF32U 
+    6:U32 -> I64TruncSatF64S 
+    7:U32 -> I64TruncSatF64U
+
+%%
+  -- 解析Instr
+  parseInstr :: Parser Instr
+  parseInstr = NumInstr <$> parseNumInstr
+    <|> RefInstr <$> parseRefInstr
+    <|> ParamInstr <$> parseParamInstr
+    <|> VarInstr <$> parseVarInstr
+    <|> TableInstr <$> parseTableInstr
+    <|> MemoryInstr <$> parseMemoryInstr
+    <|> CtlInstr <$> parseCtlInstr
+    <|> do
+      P.word8 0xFC
+      NumInstr' <$> parseNumInstr'
+        <|> TableInstr' <$> parseTableInstr'
+        <|> MemoryInstr' <$> parseMemoryInstr'
+
+%%
+  buildInstr :: Instr -> Builder ()
+  buildInstr = go
+    where
+      go (NumInstr i) = buildNumInstr i
+      go (RefInstr i) = buildRefInstr i
+      go (ParamInstr i) = buildParamInstr i
+      go (VarInstr i) = buildVarInstr i
+      go (TableInstr i) = buildTableInstr i
+      go (MemoryInstr i) = buildMemoryInstr i
+      go (CtlInstr i) = buildCtlInstr i
+
+      go (NumInstr' i) = B.word8 0xFC >> buildNumInstr' i
+      go (TableInstr' i) = B.word8 0xFC >> buildTableInstr' i
+      go (MemoryInstr' i) = B.word8 0xFC >> buildMemoryInstr' i

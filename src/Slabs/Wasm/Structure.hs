@@ -50,11 +50,6 @@ data ExternType
 
 -- 2.4 Instructinos
 -- 2.4.1 Numeric Instructions
-data BitSize
-    = BS32
-    | BS64
-    deriving (Show, Eq, Generic, NFData)
-
 data NumInstr 
     = I32Const Word32
     | I64Const Word64
@@ -80,19 +75,46 @@ data NumInstr
     | F64RelOp FRelOp
 
     | I32WrapI64
-    | I64ExtendSI32
-    | I64ExtendUI32
-    | FConvertIU BitSize BitSize
-    | FConvertIS BitSize BitSize
+    | I32TruncF32U
+    | I32TruncF32S
+    | I32TruncF64U
+    | I32TruncF64S
+    | I64ExtendI32S
+    | I64ExtendI32U
+    | I64TruncF32U
+    | I64TruncF32S
+    | I64TruncF64U
+    | I64TruncF64S
+    | F32ConvertI32S
+    | F32ConvertI32U
+    | F32ConvertI64S
+    | F32ConvertI64U
     | F32DemoteF64
+    | F64ConvertI32S
+    | F64ConvertI32U
+    | F64ConvertI64S
+    | F64ConvertI64U
     | F64PromoteF32
-    | IReinterpretF BitSize
-    | FReinterpretI BitSize
+    | I32ReinterpretF32
+    | I64ReinterpretF64
+    | F32ReinterpretI32
+    | F64ReinterpretI64
+    | I32Extend8S
+    | I32Extend16S
+    | I64Extend8S
+    | I64Extend16S
+    | I64Extend32S
     deriving (Eq, Generic, NFData)
 
 data NumInstr'
-    = ITruncFU BitSize BitSize
-    | ITruncFS BitSize BitSize
+    = I32TruncSatF32S
+    | I32TruncSatF32U
+    | I32TruncSatF64S
+    | I32TruncSatF64U
+    | I64TruncSatF32S
+    | I64TruncSatF32U
+    | I64TruncSatF64S
+    | I64TruncSatF64U
     deriving (Eq, Generic, NFData)
 
 data IUnOp
@@ -149,7 +171,7 @@ data FBinOp
     | FDiv
     | FMin
     | FMax
-    | FCopySign
+    | FCopysign
     deriving (Eq, Generic, NFData)
 
 data FRelOp
@@ -232,12 +254,12 @@ data MemoryInstr
     | I64Store8 MemArg
     | I64Store16 MemArg
     | I64Store32 MemArg
+    | MemorySize
+    | MemoryGrow
     deriving (Eq, Generic, NFData)
 
 data MemoryInstr'
-    = MemorySize
-    | MemoryGrow
-    | MemoryFill
+    = MemoryFill
     | MemoryCopy
     | MemoryInit DataIdx
     | DataDrop DataIdx
