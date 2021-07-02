@@ -47,11 +47,10 @@ buildValType (NumType t) = buildNumType t
 buildValType (RefType t) = buildRefType t
 
 parseResultType :: Parser ResultType
-parseResultType = do t <- (parseVec parseValType)
-                     pure t
+parseResultType = parseVec parseValType
 
 buildResultType :: ResultType -> Builder ()
-buildResultType t = buildVec buildValType t
+buildResultType = buildVec buildValType
 
 parseFuncType :: Parser FuncType
 parseFuncType = do P.word8 96
@@ -131,7 +130,7 @@ parseElseInstrs :: Parser [Instr]
 parseElseInstrs = do P.word8 11
                      pure []
                   <|> do P.word8 5
-                         ins <- (P.many parseInstr)
+                         ins <- P.many parseInstr
                          P.word8 11
                          pure ins
 
@@ -148,17 +147,17 @@ parseCtlInstr = do P.word8 0
                        pure Nop
                 <|> do P.word8 2
                        bt <- parseBlockType
-                       ins <- (P.many parseInstr)
+                       ins <- P.many parseInstr
                        P.word8 11
                        pure (Block bt ins)
                 <|> do P.word8 3
                        bt <- parseBlockType
-                       ins <- (P.many parseInstr)
+                       ins <- P.many parseInstr
                        P.word8 11
                        pure (Loop bt ins)
                 <|> do P.word8 4
                        bt <- parseBlockType
-                       in1 <- (P.many parseInstr)
+                       in1 <- P.many parseInstr
                        in2 <- parseElseInstrs
                        pure (If bt in1 in2)
                 <|> do P.word8 12
@@ -168,7 +167,7 @@ parseCtlInstr = do P.word8 0
                        l <- parseLabelIdx
                        pure (BrIf l)
                 <|> do P.word8 14
-                       ls <- (parseVec parseLabelIdx)
+                       ls <- parseVec parseLabelIdx
                        ln <- parseLabelIdx
                        pure (BrTable ls ln)
                 <|> do P.word8 15
@@ -233,7 +232,7 @@ parseParamInstr = do P.word8 26
                   <|> do P.word8 27
                          pure (Select [])
                   <|> do P.word8 28
-                         ts <- (parseVec parseValType)
+                         ts <- parseVec parseValType
                          pure (Select ts)
 
 buildParamInstr :: ParamInstr -> Builder ()
@@ -925,6 +924,15 @@ buildNumInstr' I64TruncSatF32U = buildU32 5
 buildNumInstr' I64TruncSatF64S = buildU32 6
 buildNumInstr' I64TruncSatF64U = buildU32 7
 
+parseExpr :: Parser Expr
+parseExpr = do ins <- P.many parseInstr
+               P.word8 11
+               pure (Expr ins)
+
+buildExpr :: Expr -> Builder ()
+buildExpr (Expr ins) = do mapM_ buildInstr ins
+                          B.word8 11
+
 parseTypeIdx :: Parser TypeIdx
 parseTypeIdx = parseU32
 
@@ -1005,16 +1013,297 @@ buildVersion = do B.word8 16
                   B.word8 0
                   B.word8 0
 
+parseTypeSec :: Parser [FuncType]
+parseTypeSec = do P.word8 1
+                  types <- parseSection (parseVec parseFuncType)
+                  pure types
+               <|> pure []
+
+buildTypeSec :: [FuncType] -> Builder ()
+buildTypeSec [] = pure ()
+buildTypeSec types = do B.word8 1
+                        buildSection (buildVec buildFuncType) types
+
+parseImportSec :: Parser [Import]
+parseImportSec = do P.word8 2
+                    imports <- parseSection (parseVec parseImport)
+                    pure imports
+                 <|> pure []
+
+buildImportSec :: [Import] -> Builder ()
+buildImportSec [] = pure ()
+buildImportSec imports = do B.word8 2
+                            buildSection (buildVec buildImport) imports
+
+parseImport :: Parser Import
+parseImport = do mod <- parseName
+                 nm <- parseName
+                 d <- parseImportDesc
+                 pure (Import mod nm d)
+
+buildImport :: Import -> Builder ()
+buildImport (Import mod nm d) = do buildName mod
+                                   buildName nm
+                                   buildImportDesc d
+
+parseImportDesc :: Parser ImportDesc
+parseImportDesc = do P.word8 0
+                     x <- parseTypeIdx
+                     pure (ImportFunc x)
+                  <|> do P.word8 1
+                         tt <- parseTableType
+                         pure (ImportTable tt)
+                  <|> do P.word8 2
+                         mt <- parseMemType
+                         pure (ImportMemory mt)
+                  <|> do P.word8 3
+                         gt <- parseGlobalType
+                         pure (ImportGlobal gt)
+
+buildImportDesc :: ImportDesc -> Builder ()
+buildImportDesc (ImportFunc x) = do B.word8 0
+                                    buildTypeIdx x
+buildImportDesc (ImportTable tt) = do B.word8 1
+                                      buildTableType tt
+buildImportDesc (ImportMemory mt) = do B.word8 2
+                                       buildMemType mt
+buildImportDesc (ImportGlobal gt) = do B.word8 3
+                                       buildGlobalType gt
+
+parseFuncSec :: Parser [TypeIdx]
+parseFuncSec = do P.word8 3
+                  x <- parseSection (parseVec parseTypeIdx)
+                  pure x
+               <|> pure []
+
+buildFuncSec :: [TypeIdx] -> Builder ()
+buildFuncSec [] = pure ()
+buildFuncSec x = do B.word8 3
+                    buildSection (buildVec buildTypeIdx) x
+
+parseTableSec :: Parser [Table]
+parseTableSec = do P.word8 4
+                   tabs <- parseSection (parseVec parseTable)
+                   pure tabs
+                <|> pure []
+
+buildTableSec :: [Table] -> Builder ()
+buildTableSec [] = pure ()
+buildTableSec tabs = do B.word8 4
+                        buildSection (buildVec buildTable) tabs
+
+parseTable :: Parser Table
+parseTable = do tt <- parseTableType
+                pure (Table tt)
+
+buildTable :: Table -> Builder ()
+buildTable (Table tt) = buildTableType tt
+
+parseMemSec :: Parser [Mem]
+parseMemSec = do P.word8 5
+                 mems <- parseSection (parseVec parseMem)
+                 pure mems
+              <|> pure []
+
+buildMemSec :: [Mem] -> Builder ()
+buildMemSec [] = pure ()
+buildMemSec mems = do B.word8 5
+                      buildSection (buildVec buildMem) mems
+
+parseMem :: Parser Mem
+parseMem = do mt <- parseMemType
+              pure (Mem mt)
+
+buildMem :: Mem -> Builder ()
+buildMem (Mem mt) = buildMemType mt
+
+parseGlobalSec :: Parser [Global]
+parseGlobalSec = do P.word8 6
+                    globs <- parseSection (parseVec parseGlobal)
+                    pure globs
+                 <|> pure []
+
+buildGlobalSec :: [Global] -> Builder ()
+buildGlobalSec [] = pure ()
+buildGlobalSec globs = do B.word8 6
+                          buildSection (buildVec buildGlobal) globs
+
+parseGlobal :: Parser Global
+parseGlobal = do gt <- parseGlobalType
+                 e <- parseExpr
+                 pure (Global gt e)
+
+buildGlobal :: Global -> Builder ()
+buildGlobal (Global gt e) = do buildGlobalType gt
+                               buildExpr e
+
+parseExportSec :: Parser [Export]
+parseExportSec = do P.word8 7
+                    exs <- parseSection (parseVec parseExport)
+                    pure exs
+                 <|> pure []
+
+buildExportSec :: [Export] -> Builder ()
+buildExportSec [] = pure ()
+buildExportSec exs = do B.word8 7
+                        buildSection (buildVec buildExport) exs
+
+parseExport :: Parser Export
+parseExport = do nm <- parseName
+                 d <- parseExportDesc
+                 pure (Export nm d)
+
+buildExport :: Export -> Builder ()
+buildExport (Export nm d) = do buildName nm
+                               buildExportDesc d
+
+parseExportDesc :: Parser ExportDesc
+parseExportDesc = do P.word8 0
+                     x <- parseFuncIdx
+                     pure (ExportFunc x)
+                  <|> do P.word8 1
+                         x <- parseTableIdx
+                         pure (ExportTable x)
+                  <|> do P.word8 2
+                         x <- parseMemIdx
+                         pure (ExportMem x)
+                  <|> do P.word8 3
+                         x <- parseGlobalIdx
+                         pure (ExportGlobal x)
+
+buildExportDesc :: ExportDesc -> Builder ()
+buildExportDesc (ExportFunc x) = do B.word8 0
+                                    buildFuncIdx x
+buildExportDesc (ExportTable x) = do B.word8 1
+                                     buildTableIdx x
+buildExportDesc (ExportMem x) = do B.word8 2
+                                   buildMemIdx x
+buildExportDesc (ExportGlobal x) = do B.word8 3
+                                      buildGlobalIdx x
+
+parseStartSec :: Parser (Maybe Start)
+parseStartSec = do P.word8 8
+                   st <- parseSection parseStart
+                   pure (Just st)
+                <|> pure Nothing
+
+buildStartSec :: Maybe Start -> Builder ()
+buildStartSec Nothing = pure ()
+buildStartSec (Just st) = do B.word8 8
+                             buildSection buildStart st
+
+parseStart :: Parser Start
+parseStart = do x <- parseFuncIdx
+                pure (Start x)
+
+buildStart :: Start -> Builder ()
+buildStart (Start x) = buildFuncIdx x
+
+parseElemSec :: Parser [Elem]
+parseElemSec = do P.word8 9
+                  segs <- parseSection (parseVec parseElem)
+                  pure segs
+               <|> pure []
+
+buildElemSec :: [Elem] -> Builder ()
+buildElemSec [] = pure ()
+buildElemSec segs = do B.word8 9
+                       buildSection (buildVec buildElem) segs
+
+parseElem :: Parser Elem
+parseElem = do P.word8 0
+               e <- parseExpr
+               ys <- parseVec parseFuncIdx
+               pure (Elem FuncRef (RefFuncs ys) (EActive 0 e))
+            <|> do P.word8 1
+                   P.word8 0
+                   ys <- parseVec parseFuncIdx
+                   pure (Elem FuncRef (RefFuncs ys) EPassive)
+            <|> do P.word8 2
+                   x <- parseTableIdx
+                   e <- parseExpr
+                   P.word8 0
+                   ys <- parseVec parseFuncIdx
+                   pure (Elem FuncRef (RefFuncs ys) (EActive x e))
+            <|> do P.word8 3
+                   P.word8 0
+                   ys <- parseVec parseFuncIdx
+                   pure (Elem FuncRef (RefFuncs ys) EDeclarative)
+            <|> do P.word8 4
+                   e <- parseExpr
+                   els <- parseVec parseExpr
+                   pure (Elem FuncRef els (EActive 0 e))
+            <|> do P.word8 5
+                   et <- parseRefType
+                   els <- parseVec parseExpr
+                   pure (Elem et els EPassive)
+            <|> do P.word8 6
+                   x <- parseTableIdx
+                   e <- parseExpr
+                   et <- parseRefType
+                   els <- parseVec parseExpr
+                   pure (Elem et els (EActive x e))
+            <|> do P.word8 7
+                   et <- parseRefType
+                   els <- parseVec parseExpr
+                   pure (Elem et els EDeclarative)
+
+buildElem :: Elem -> Builder ()
+buildElem (Elem FuncRef (RefFuncs ys) (EActive 0 e)) = do B.word8 0
+                                                          buildExpr e
+                                                          buildVec buildFuncIdx ys
+buildElem (Elem FuncRef (RefFuncs ys) EPassive) = do B.word8 1
+                                                     B.word8 0
+                                                     buildVec buildFuncIdx ys
+buildElem (Elem FuncRef (RefFuncs ys) (EActive x e)) = do B.word8 2
+                                                          buildTableIdx x
+                                                          buildExpr e
+                                                          B.word8 0
+                                                          buildVec buildFuncIdx ys
+buildElem (Elem FuncRef (RefFuncs ys) EDeclarative) = do B.word8 3
+                                                         B.word8 0
+                                                         buildVec buildFuncIdx ys
+buildElem (Elem FuncRef els (EActive 0 e)) = do B.word8 4
+                                                buildExpr e
+                                                buildVec buildExpr els
+buildElem (Elem et els EPassive) = do B.word8 5
+                                      buildRefType et
+                                      buildVec buildExpr els
+buildElem (Elem et els (EActive x e)) = do B.word8 6
+                                           buildTableIdx x
+                                           buildExpr e
+                                           buildRefType et
+                                           buildVec buildExpr els
+buildElem (Elem et els EDeclarative) = do B.word8 7
+                                          buildRefType et
+                                          buildVec buildExpr els
+
 parseModule :: Parser Module
 parseModule = do parseMagic
                  parseVersion
-                 _ <- (P.many parseCustom)
-                 pure (Module [] [] [] [] [] [] [] Nothing [] [])
+                 types <- parseTypeSec
+                 imports <- parseImportSec
+                 typeidxs <- parseFuncSec
+                 tables <- parseTableSec
+                 mems <- parseMemSec
+                 globals <- parseGlobalSec
+                 exports <- parseExportSec
+                 start <- parseStartSec
+                 elems <- parseElemSec
+                 pure (Module types [] tables mems globals elems [] start imports export)
 
 buildModule :: Module -> Builder ()
-buildModule (Module [] [] [] [] [] [] [] Nothing [] []) = do buildMagic
-                                                             buildVersion
-                                                             mapM_ buildCustom _
+buildModule (Module types [] tables mems globals elems [] start imports export) = do buildMagic
+                                                                                     buildVersion
+                                                                                     buildTypeSec types
+                                                                                     buildImportSec imports
+                                                                                     buildFuncSec typeidxs
+                                                                                     buildTableSec tables
+                                                                                     buildMemSec mems
+                                                                                     buildGlobalSec globals
+                                                                                     buildExportSec exports
+                                                                                     buildStartSec start
+                                                                                     buildElemSec elems
 
 -- 解析Instr
 parseInstr :: Parser Instr

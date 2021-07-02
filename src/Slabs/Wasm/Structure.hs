@@ -272,9 +272,9 @@ data BlockType = BlockEmptyType | TypeIdx TypeIdx | ValType ValType
 data CtlInstr 
     = Nop
     | Unreachable
-    | Block BlockType Expr
-    | Loop BlockType Expr
-    | If BlockType Expr Expr
+    | Block BlockType [Instr]
+    | Loop BlockType [Instr]
+    | If BlockType [Instr] [Instr]
     | Br LabelIdx
     | BrIf LabelIdx
     | BrTable [LabelIdx] LabelIdx
@@ -283,7 +283,8 @@ data CtlInstr
     | CallIndirect TableIdx TypeIdx
     deriving (Eq, Generic, NFData)
 
-type Expr = [Instr]
+newtype Expr = Expr [Instr]
+    deriving (Eq, Generic, NFData)
 
 data Instr 
   = NumInstr NumInstr
@@ -299,6 +300,23 @@ data Instr
   | MemoryInstr' MemoryInstr'
   deriving (Eq, Generic, NFData)
 
+refToExpr :: FuncIdx -> Expr
+refToExpr idx = Expr [RefInstr $ RefFunc idx]
+
+exprsToRefs :: [Expr] -> Maybe [FuncIdx]
+exprsToRefs exprs
+ | length exprs == length idxs = Just idxs
+ | otherwise = Nothing
+ where
+    go (Expr [RefInstr (RefFunc idx)]) = Just idx
+    go _ = Nothing
+
+    idxs = mapMaybe go exprs
+
+pattern RefFuncs :: [FuncIdx] -> [Expr]
+pattern RefFuncs idxs <- (exprsToRefs -> Just idxs) where
+    RefFuncs idxs = map refToExpr idxs
+ 
 -- 2.5 Modules
 data Module
     = Module { types :: [FuncType]
@@ -337,8 +355,8 @@ newtype Mem = Mem {_type :: MemType}
 data Global = Global {_type :: GlobalType, init :: Expr}
     deriving (Eq, Generic, NFData)
 
-data Elem = Elem { tableIndex :: RefType
-                  , init :: Expr
+data Elem = Elem { refType :: RefType
+                  , init :: [Expr]
                   , mode :: ElemMode
                   }
     deriving (Eq, Generic, NFData)
@@ -355,7 +373,7 @@ data Data = Data { init :: Bytes, mode :: DataMode}
 data DataMode = DPassive | DActive { memory :: MemIdx, offset :: Expr}
     deriving (Eq, Generic, NFData)
 
-newtype Start = Start {func :: FuncIdx}
+newtype Start = Start FuncIdx
     deriving (Eq, Generic, NFData)
 
 data Export

@@ -1,9 +1,16 @@
 module Slabs.Wasm.Internal  where
 
 import Universum
-import Control.Monad.Combinators
+import Data.Default
 import Slabs.Data.Codec 
 import Slabs.Wasm.Structure
+
+import Z.Data.Parser (Parser)
+import qualified Z.Data.Parser as P 
+import qualified Control.Monad.Combinators as P 
+import Z.Data.Builder (Builder)
+import qualified Z.Data.Builder as B 
+import qualified Z.Data.Vector as V
 
 parseU32 :: Parser Word32
 parseU32 = anyWord32leb128
@@ -32,7 +39,7 @@ buildF64 = word64LEB128
 parseVec :: Parser a -> Parser [a]
 parseVec p = do
   n <- parseU32
-  count (fromIntegral n) p
+  P.count (fromIntegral n) p
 
 buildVec :: (a -> Builder ()) -> [a] -> Builder ()
 buildVec b vals = do
@@ -59,17 +66,17 @@ parseName = undefined
 buildName :: Text -> Builder ()
 buildName = undefined
 
-parseSection :: Word8 -> Parser a -> Parser a
-parseSection n p = do
-  P.word8 n
+parseSection :: Parser a -> Parser a
+parseSection p = do
   size <- parseU32
-  bs <- P.tokens size
-  P.parse (p >> P.eof) bs
+  bs <- P.take $ fromIntegral size
+  case P.parse' (p <* P.endOfInput) bs of
+    Left err -> P.fail' $ mconcat err
+    Right a -> return a
 
-buildSection :: Word8 -> (a -> Builder ()) -> a -> Builder ()
-buildSection n b a = do
-  B.word8 n
-  let bs = B.build b a
-      size = length bs
+buildSection :: (a -> Builder ()) -> a -> Builder ()
+buildSection b a = do
+  let bs = B.build $ b a
+      size = fromIntegral $ V.length bs
   buildU32 size
-  chunk bs
+  B.bytes bs

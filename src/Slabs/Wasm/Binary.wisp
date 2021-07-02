@@ -284,6 +284,9 @@ defbin
     6:U32 -> I64TruncSatF64S 
     7:U32 -> I64TruncSatF64U
 
+  Expr
+    ins:*(Instr) 0x0B -> Expr ins
+  
   ; modules
   TypeIdx
     i:U32 -> i
@@ -318,8 +321,89 @@ defbin
   Version:()
     0x10 0x00 0x00 0x00
 
+  TypeSec: [FuncType]
+    1 types:Section(Vec(FuncType)) -> types
+    -> []
+  
+  ImportSec: [Import]
+    2 imports:Section(Vec(Import)) -> imports
+    -> []
+  
+  Import
+    mod:Name nm:Name d:ImportDesc -> Import mod nm d
+
+  ImportDesc
+    0x00 x:TypeIdx -> ImportFunc x
+    0x01 tt:TableType -> ImportTable tt
+    0x02 mt:MemType -> ImportMemory mt
+    0x03 gt:GlobalType -> ImportGlobal gt
+  
+  FuncSec: [TypeIdx]
+    3 x:Section(Vec(TypeIdx)) -> x
+    -> []
+  
+  TableSec: [Table]
+    4 tabs:Section(Vec(Table)) -> tabs
+    -> []
+  
+  Table
+    tt:TableType -> Table tt
+  
+  MemSec: [Mem]
+    5 mems:Section(Vec(Mem)) -> mems
+    -> []
+
+  Mem
+    mt:MemType -> Mem mt
+
+  GlobalSec: [Global]
+    6 globs:Section(Vec(Global)) -> globs
+    -> []
+  
+  Global
+    gt:GlobalType e:Expr -> Global gt e
+  
+  ExportSec: [Export]
+    7 exs:Section(Vec(Export)) -> exs
+    -> []
+  
+  Export
+    nm:Name d:ExportDesc -> Export nm d
+
+  ExportDesc
+    0x00 x:FuncIdx -> ExportFunc x
+    0x01 x:TableIdx -> ExportTable x
+    0x02 x:MemIdx -> ExportMem x
+    0x03 x:GlobalIdx -> ExportGlobal x
+  
+  StartSec: (Maybe Start)
+    8 st:Section(Start) -> Just st
+    -> Nothing
+
+  Start
+    x:FuncIdx -> Start x
+  
+  ElemSec: [Elem]
+    9 segs:Section(Vec(Elem)) -> segs
+    -> []
+  
+  Elem
+    0x00 e:Expr ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) (EActive 0 e)
+    0x01 0x00 ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) EPassive
+    0x02 x:TableIdx e:Expr 0x00 ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) (EActive x e)
+    0x03 0x00 ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) EDeclarative
+    0x04 e:Expr els:Vec(Expr) -> Elem FuncRef els (EActive 0 e)
+    0x05 et:RefType els:Vec(Expr) -> Elem et els EPassive
+    0x06 x:TableIdx e:Expr et:RefType els:Vec(Expr) -> Elem et els (EActive x e)
+    0x07 et:RefType els:Vec(Expr) -> Elem et els EDeclarative
+
+
   Module
-    Magic Version _:*(Custom) -> Module [] [] [] [] [] [] [] Nothing [] []
+    Magic Version 
+      . types:TypeSec imports:ImportSec typeidxs:FuncSec tables:TableSec 
+      . mems:MemSec globals:GlobalSec exports:ExportSec start:StartSec
+      . elems:ElemSec
+      . -> Module types [] tables mems globals elems [] start imports export
 
 %%
   -- 解析Instr
