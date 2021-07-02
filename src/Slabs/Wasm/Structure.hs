@@ -8,9 +8,10 @@ import Universum
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import Z.Data.Vector (Bytes)
+import qualified Z.Data.Text as T
 
 type U32 = Word32
-type Name = Text
+type Name = T.Text
 
 -- 2.3 Types
 data NumType = I32 | I64 | F32 | F64
@@ -320,13 +321,15 @@ pattern RefFuncs idxs <- (exprsToRefs -> Just idxs) where
 -- 2.5 Modules
 data Module
     = Module { types :: [FuncType]
-             , funcs :: [Func]
+             , typeidxs :: [TypeIdx]
+             , codes :: [Code]
              , tables :: [Table]
              , mems :: [Mem]
              , globals :: [Global]
              , elems :: [Elem]
+             , datacount :: U32
              , datas :: [Data]
-             , start :: Maybe Start
+             , start :: Start
              , imports :: [Import]
              , exports :: [Export]
              }
@@ -343,7 +346,7 @@ type DataIdx = U32
 type LocalIdx = U32
 type LabelIdx = U32
 
-data Func = Func {_type :: TypeIdx, locals :: [ValType], body :: Expr}
+data Code = Code {locals :: [ValType], body :: Expr}
     deriving (Eq, Generic, NFData)
 
 newtype Table = Table {_type :: TableType}
@@ -373,7 +376,7 @@ data Data = Data { init :: Bytes, mode :: DataMode}
 data DataMode = DPassive | DActive { memory :: MemIdx, offset :: Expr}
     deriving (Eq, Generic, NFData)
 
-newtype Start = Start FuncIdx
+data Start = NoStart | StartAt FuncIdx
     deriving (Eq, Generic, NFData)
 
 data Export

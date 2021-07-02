@@ -1181,23 +1181,16 @@ buildExportDesc (ExportMem x) = do B.word8 2
 buildExportDesc (ExportGlobal x) = do B.word8 3
                                       buildGlobalIdx x
 
-parseStartSec :: Parser (Maybe Start)
+parseStartSec :: Parser Start
 parseStartSec = do P.word8 8
-                   st <- parseSection parseStart
-                   pure (Just st)
-                <|> pure Nothing
+                   x <- parseSection parseFuncIdx
+                   pure (StartAt x)
+                <|> pure NoStart
 
-buildStartSec :: Maybe Start -> Builder ()
-buildStartSec Nothing = pure ()
-buildStartSec (Just st) = do B.word8 8
-                             buildSection buildStart st
-
-parseStart :: Parser Start
-parseStart = do x <- parseFuncIdx
-                pure (Start x)
-
-buildStart :: Start -> Builder ()
-buildStart (Start x) = buildFuncIdx x
+buildStartSec :: Start -> Builder ()
+buildStartSec NoStart = pure ()
+buildStartSec (StartAt x) = do B.word8 8
+                               buildSection buildFuncIdx x
 
 parseElemSec :: Parser [Elem]
 parseElemSec = do P.word8 9
@@ -1209,6 +1202,77 @@ buildElemSec :: [Elem] -> Builder ()
 buildElemSec [] = pure ()
 buildElemSec segs = do B.word8 9
                        buildSection (buildVec buildElem) segs
+
+parseCodeSec :: Parser [Code]
+parseCodeSec = do P.word8 10
+                  codes <- parseSection (parseVec parseCode)
+                  pure codes
+               <|> pure []
+
+buildCodeSec :: [Code] -> Builder ()
+buildCodeSec [] = pure ()
+buildCodeSec codes = do B.word8 10
+                        buildSection (buildVec buildCode) codes
+
+parseCode :: Parser Code
+parseCode = do ts <- parseVec parseValType
+               e <- parseExpr
+               pure (Code ts e)
+
+buildCode :: Code -> Builder ()
+buildCode (Code ts e) = do buildVec buildValType ts
+                           buildExpr e
+
+parseLocals :: Parser [ValType]
+parseLocals = parseVec parseValType
+
+buildLocals :: [ValType] -> Builder ()
+buildLocals = buildVec buildValType
+
+parseDataSec :: Parser [Data]
+parseDataSec = do P.word8 11
+                  datas <- parseSection (parseVec parseData)
+                  pure datas
+               <|> pure []
+
+buildDataSec :: [Data] -> Builder ()
+buildDataSec [] = pure ()
+buildDataSec datas = do B.word8 11
+                        buildSection (buildVec buildData) datas
+
+parseData :: Parser Data
+parseData = do P.word8 0
+               e <- parseExpr
+               bs <- parseBytes
+               pure (Data bs (DActive 0 e))
+            <|> do P.word8 1
+                   bs <- parseBytes
+                   pure (Data bs DPassive)
+            <|> do P.word8 2
+                   x <- parseMemIdx
+                   e <- parseExpr
+                   bs <- parseBytes
+                   pure (Data bs (DActive x e))
+
+buildData :: Data -> Builder ()
+buildData (Data bs (DActive 0 e)) = do B.word8 0
+                                       buildExpr e
+                                       buildBytes bs
+buildData (Data bs DPassive) = do B.word8 1
+                                  buildBytes bs
+buildData (Data bs (DActive x e)) = do B.word8 2
+                                       buildMemIdx x
+                                       buildExpr e
+                                       buildBytes bs
+
+parseDatacountSec :: Parser U32
+parseDatacountSec = do P.word8 12
+                       x <- parseSection parseU32
+                       pure x
+
+buildDatacountSec :: U32 -> Builder ()
+buildDatacountSec x = do B.word8 12
+                         buildSection buildU32 x
 
 parseElem :: Parser Elem
 parseElem = do P.word8 0
@@ -1290,20 +1354,26 @@ parseModule = do parseMagic
                  exports <- parseExportSec
                  start <- parseStartSec
                  elems <- parseElemSec
-                 pure (Module types [] tables mems globals elems [] start imports export)
+                 m <- parseDatacountSec
+                 codes <- parseCodeSec
+                 datas <- parseDataSec
+                 pure (Module types typeidxs codes tables mems globals elems m datas start imports exports)
 
 buildModule :: Module -> Builder ()
-buildModule (Module types [] tables mems globals elems [] start imports export) = do buildMagic
-                                                                                     buildVersion
-                                                                                     buildTypeSec types
-                                                                                     buildImportSec imports
-                                                                                     buildFuncSec typeidxs
-                                                                                     buildTableSec tables
-                                                                                     buildMemSec mems
-                                                                                     buildGlobalSec globals
-                                                                                     buildExportSec exports
-                                                                                     buildStartSec start
-                                                                                     buildElemSec elems
+buildModule (Module types typeidxs codes tables mems globals elems m datas start imports exports) = do buildMagic
+                                                                                                       buildVersion
+                                                                                                       buildTypeSec types
+                                                                                                       buildImportSec imports
+                                                                                                       buildFuncSec typeidxs
+                                                                                                       buildTableSec tables
+                                                                                                       buildMemSec mems
+                                                                                                       buildGlobalSec globals
+                                                                                                       buildExportSec exports
+                                                                                                       buildStartSec start
+                                                                                                       buildElemSec elems
+                                                                                                       buildDatacountSec m
+                                                                                                       buildCodeSec codes
+                                                                                                       buildDataSec datas
 
 -- 解析Instr
 parseInstr :: Parser Instr

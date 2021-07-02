@@ -376,17 +376,37 @@ defbin
     0x02 x:MemIdx -> ExportMem x
     0x03 x:GlobalIdx -> ExportGlobal x
   
-  StartSec: (Maybe Start)
-    8 st:Section(Start) -> Just st
-    -> Nothing
+  StartSec: Start
+    8 x:Section(FuncIdx) -> StartAt x
+    -> NoStart
 
-  Start
-    x:FuncIdx -> Start x
-  
   ElemSec: [Elem]
     9 segs:Section(Vec(Elem)) -> segs
     -> []
   
+  CodeSec: [Code]
+    10 codes:Section(Vec(Code)) -> codes
+    -> []
+  
+  Code
+    ts:Vec(ValType) e:Expr -> Code ts e
+  
+  Locals: [ValType]
+    vts:Vec(ValType) -> vts
+  
+  DataSec: [Data]
+    11 datas:Section(Vec(Data)) -> datas
+    -> []
+  
+  Data
+    0x00 e:Expr bs:Bytes -> Data bs (DActive 0 e)
+    0x01 bs:Bytes -> Data bs DPassive
+    0x02 x:MemIdx e:Expr bs:Bytes -> Data bs (DActive x e)
+
+  DatacountSec: U32
+    12 x:Section(U32) -> x
+  
+
   Elem
     0x00 e:Expr ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) (EActive 0 e)
     0x01 0x00 ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) EPassive
@@ -402,8 +422,8 @@ defbin
     Magic Version 
       . types:TypeSec imports:ImportSec typeidxs:FuncSec tables:TableSec 
       . mems:MemSec globals:GlobalSec exports:ExportSec start:StartSec
-      . elems:ElemSec
-      . -> Module types [] tables mems globals elems [] start imports export
+      . elems:ElemSec m:DatacountSec codes:CodeSec datas:DataSec
+      . -> Module types typeidxs codes tables mems globals elems m datas start imports exports
 
 %%
   -- 解析Instr

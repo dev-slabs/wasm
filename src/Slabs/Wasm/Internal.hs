@@ -10,6 +10,7 @@ import qualified Z.Data.Parser as P
 import qualified Control.Monad.Combinators as P 
 import Z.Data.Builder (Builder)
 import qualified Z.Data.Builder as B 
+import qualified Z.Data.Text as T
 import qualified Z.Data.Vector as V
 
 parseU32 :: Parser Word32
@@ -25,16 +26,16 @@ buildU64 :: Word64 -> Builder ()
 buildU64 = word64LEB128
 
 parseF32 :: Parser Float
-parseF32 = pure 1  -- TODO
+parseF32 = P.decodePrimLE
 
 buildF32 :: Float -> Builder ()
-buildF32 = word32LEB128
+buildF32 = B.encodePrimLE
 
 parseF64 :: Parser Double
-parseF64 = anyWord64leb128
+parseF64 = P.decodePrimLE
 
 buildF64 :: Double -> Builder ()
-buildF64 = word64LEB128
+buildF64 = B.encodePrimLE
 
 parseVec :: Parser a -> Parser [a]
 parseVec p = do
@@ -55,16 +56,20 @@ checkEq p a = do
         else fail $ "not equal: " <> show a
 
 parseBytes :: Parser Bytes
-parseBytes = undefined
+parseBytes = do
+  size <- parseU32
+  P.take (fromIntegral size)
 
 buildBytes :: Bytes -> Builder ()
-buildBytes bs = undefined
+buildBytes bs = buildU32 size >> buildBytes bs
+  where
+    size = fromIntegral $ V.length bs
 
-parseName :: Parser Text
-parseName = undefined
+parseName :: Parser Name
+parseName = T.validate <$> parseBytes
 
-buildName :: Text -> Builder ()
-buildName = undefined
+buildName :: Name -> Builder ()
+buildName = buildBytes . T.getUTF8Bytes
 
 parseSection :: Parser a -> Parser a
 parseSection p = do
