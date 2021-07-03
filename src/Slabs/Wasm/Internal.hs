@@ -13,38 +13,38 @@ import qualified Z.Data.Builder as B
 import qualified Z.Data.Text as T
 import qualified Z.Data.Vector as V
 
-parseU32 :: Parser Word32
-parseU32 = anyWord32leb128
+decodeU32 :: Parser Word32
+decodeU32 = anyWord32leb128
 
-buildU32 :: U32 -> Builder ()
-buildU32 = word32LEB128
+encodeU32 :: U32 -> Builder ()
+encodeU32 = word32LEB128
 
-parseU64 :: Parser Word64
-parseU64 = anyWord64leb128
+decodeU64 :: Parser Word64
+decodeU64 = anyWord64leb128
 
-buildU64 :: Word64 -> Builder ()
-buildU64 = word64LEB128
+encodeU64 :: Word64 -> Builder ()
+encodeU64 = word64LEB128
 
-parseF32 :: Parser Float
-parseF32 = P.decodePrimLE
+decodeF32 :: Parser Float
+decodeF32 = P.decodePrimLE
 
-buildF32 :: Float -> Builder ()
-buildF32 = B.encodePrimLE
+encodeF32 :: Float -> Builder ()
+encodeF32 = B.encodePrimLE
 
-parseF64 :: Parser Double
-parseF64 = P.decodePrimLE
+decodeF64 :: Parser Double
+decodeF64 = P.decodePrimLE
 
-buildF64 :: Double -> Builder ()
-buildF64 = B.encodePrimLE
+encodeF64 :: Double -> Builder ()
+encodeF64 = B.encodePrimLE
 
-parseVec :: Parser a -> Parser [a]
-parseVec p = do
-  n <- parseU32
+decodeVec :: Parser a -> Parser [a]
+decodeVec p = do
+  n <- decodeU32
   P.count (fromIntegral n) p
 
-buildVec :: (a -> Builder ()) -> [a] -> Builder ()
-buildVec b vals = do
-  buildU32 (fromIntegral $ length vals)
+encodeVec :: (a -> Builder ()) -> [a] -> Builder ()
+encodeVec b vals = do
+  encodeU32 (fromIntegral $ length vals)
   mapM_ b vals
 
 
@@ -55,33 +55,33 @@ checkEq p a = do
         then return v
         else fail $ "not equal: " <> show a
 
-parseBytes :: Parser Bytes
-parseBytes = do
-  size <- parseU32
+decodeBytes :: Parser Bytes
+decodeBytes = do
+  size <- decodeU32
   P.take (fromIntegral size)
 
-buildBytes :: Bytes -> Builder ()
-buildBytes bs = buildU32 size >> buildBytes bs
+encodeBytes :: Bytes -> Builder ()
+encodeBytes bs = encodeU32 size >> encodeBytes bs
   where
     size = fromIntegral $ V.length bs
 
-parseName :: Parser Name
-parseName = T.validate <$> parseBytes
+decodeName :: Parser Name
+decodeName = T.validate <$> decodeBytes
 
-buildName :: Name -> Builder ()
-buildName = buildBytes . T.getUTF8Bytes
+encodeName :: Name -> Builder ()
+encodeName = encodeBytes . T.getUTF8Bytes
 
-parseSection :: Parser a -> Parser a
-parseSection p = do
-  size <- parseU32
+decodeSection :: Parser a -> Parser a
+decodeSection p = do
+  size <- decodeU32
   bs <- P.take $ fromIntegral size
   case P.parse' (p <* P.endOfInput) bs of
     Left err -> P.fail' $ mconcat err
     Right a -> return a
 
-buildSection :: (a -> Builder ()) -> a -> Builder ()
-buildSection b a = do
+encodeSection :: (a -> Builder ()) -> a -> Builder ()
+encodeSection b a = do
   let bs = B.build $ b a
       size = fromIntegral $ V.length bs
-  buildU32 size
+  encodeU32 size
   B.bytes bs

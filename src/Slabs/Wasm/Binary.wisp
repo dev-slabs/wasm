@@ -427,32 +427,32 @@ defbin
 
 %%
   -- 解析Instr
-  parseInstr :: Parser Instr
-  parseInstr = NumInstr <$> parseNumInstr
-    <|> RefInstr <$> parseRefInstr
-    <|> ParamInstr <$> parseParamInstr
-    <|> VarInstr <$> parseVarInstr
-    <|> TableInstr <$> parseTableInstr
-    <|> MemoryInstr <$> parseMemoryInstr
-    <|> CtlInstr <$> parseCtlInstr
+  decodeInstr :: Parser Instr
+  decodeInstr = NumInstr <$> decodeNumInstr
+    <|> RefInstr <$> decodeRefInstr
+    <|> ParamInstr <$> decodeParamInstr
+    <|> VarInstr <$> decodeVarInstr
+    <|> TableInstr <$> decodeTableInstr
+    <|> MemoryInstr <$> decodeMemoryInstr
+    <|> CtlInstr <$> decodeCtlInstr
     <|> do
       P.word8 0xFC
-      NumInstr' <$> parseNumInstr'
-        <|> TableInstr' <$> parseTableInstr'
-        <|> MemoryInstr' <$> parseMemoryInstr'
+      NumInstr' <$> decodeNumInstr'
+        <|> TableInstr' <$> decodeTableInstr'
+        <|> MemoryInstr' <$> decodeMemoryInstr'
 
 %%
-  buildInstr :: Instr -> Builder ()
-  buildInstr = go
+  encodeInstr :: Instr -> Builder ()
+  encodeInstr = go
     where
-      go (NumInstr i) = buildNumInstr i
-      go (RefInstr i) = buildRefInstr i
-      go (ParamInstr i) = buildParamInstr i
-      go (VarInstr i) = buildVarInstr i
-      go (TableInstr i) = buildTableInstr i
-      go (MemoryInstr i) = buildMemoryInstr i
-      go (CtlInstr i) = buildCtlInstr i
+      go (NumInstr i) = encodeNumInstr i
+      go (RefInstr i) = encodeRefInstr i
+      go (ParamInstr i) = encodeParamInstr i
+      go (VarInstr i) = encodeVarInstr i
+      go (TableInstr i) = encodeTableInstr i
+      go (MemoryInstr i) = encodeMemoryInstr i
+      go (CtlInstr i) = encodeCtlInstr i
 
-      go (NumInstr' i) = B.word8 0xFC >> buildNumInstr' i
-      go (TableInstr' i) = B.word8 0xFC >> buildTableInstr' i
-      go (MemoryInstr' i) = B.word8 0xFC >> buildMemoryInstr' i
+      go (NumInstr' i) = B.word8 0xFC >> encodeNumInstr' i
+      go (TableInstr' i) = B.word8 0xFC >> encodeTableInstr' i
+      go (MemoryInstr' i) = B.word8 0xFC >> encodeMemoryInstr' i
