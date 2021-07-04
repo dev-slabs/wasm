@@ -1,6 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 module Slabs.Wasm.Structure  where
 
@@ -16,38 +17,47 @@ type Name = T.Text
 -- 2.3 Types
 data NumType = I32 | I64 | F32 | F64
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data RefType = FuncRef | ExternRef
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data ValType = NumType NumType | RefType RefType
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 type ResultType = [ValType]
 
 data FuncType = FuncType ResultType ResultType
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Limits = Limits U32 (Maybe U32)
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 type MemType = Limits
 
 data TableType = TableType Limits RefType
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Mut = MutConst | MutVar
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data GlobalType = GlobalType Mut ValType
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data ExternType
-  = EFunc FuncType
-  | ETable TableType
-  | EMem MemType
-  | EGlobal GlobalType
-  deriving (Eq, Generic, NFData)
+    = EFunc FuncType
+    | ETable TableType
+    | EMem MemType
+    | EGlobal GlobalType
+    deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4 Instructinos
 -- 2.4.1 Numeric Instructions
@@ -106,6 +116,7 @@ data NumInstr
     | I64Extend16S
     | I64Extend32S
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data NumInstr'
     = I32TruncSatF32S
@@ -117,12 +128,14 @@ data NumInstr'
     | I64TruncSatF64S
     | I64TruncSatF64U
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data IUnOp
     = IClz
     | ICtz
     | IPopcnt
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data IBinOp
     = IAdd
@@ -141,6 +154,7 @@ data IBinOp
     | IRotl
     | IRotr
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data IRelOp
     = IEq
@@ -154,6 +168,7 @@ data IRelOp
     | IGeU
     | IGeS
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data FUnOp
     = FAbs
@@ -164,6 +179,7 @@ data FUnOp
     | FNearest
     | FSqrt
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data FBinOp
     = FAdd
@@ -174,6 +190,7 @@ data FBinOp
     | FMax
     | FCopysign
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data FRelOp
     = FEq
@@ -183,6 +200,7 @@ data FRelOp
     | FLe
     | FGe
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4.2 Reference Instructions
 data RefInstr 
@@ -190,12 +208,14 @@ data RefInstr
     | RefIsNull
     | RefFunc FuncIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4.3 Parametric Instructions
 data ParamInstr
     = Drop
     | Select [ValType]
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4.4 Variable Instructions
 data VarInstr 
@@ -205,12 +225,14 @@ data VarInstr
     | GlobalGet GlobalIdx
     | GlobalSet GlobalIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4.5 Table Instructions
 data TableInstr 
     = TableGet TableIdx
     | TableSet TableIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data TableInstr'
     = TableSize TableIdx
@@ -220,6 +242,7 @@ data TableInstr'
     | TableInit TableIdx ElemIdx
     | ElemDrop ElemIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4.6 Memory Instructions
 data MemArg
@@ -227,6 +250,7 @@ data MemArg
              , align :: U32
              }
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data MemoryInstr 
     = I32Load MemArg
@@ -258,6 +282,7 @@ data MemoryInstr
     | MemorySize
     | MemoryGrow
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data MemoryInstr'
     = MemoryFill
@@ -265,10 +290,12 @@ data MemoryInstr'
     | MemoryInit DataIdx
     | DataDrop DataIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.4.7 Control Instructions
 data BlockType = BlockEmptyType | TypeIdx TypeIdx | ValType ValType
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data CtlInstr 
     = Nop
@@ -283,23 +310,26 @@ data CtlInstr
     | Call FuncIdx
     | CallIndirect TableIdx TypeIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 newtype Expr = Expr [Instr]
-    deriving (Eq, Generic, NFData)
+    deriving (Eq, Generic)
+    deriving anyclass (NFData, T.Print)
 
 data Instr 
-  = NumInstr NumInstr
-  | RefInstr RefInstr 
-  | ParamInstr ParamInstr
-  | VarInstr VarInstr 
-  | TableInstr TableInstr 
-  | MemoryInstr MemoryInstr 
-  | CtlInstr CtlInstr
+    = NumInstr NumInstr
+    | RefInstr RefInstr 
+    | ParamInstr ParamInstr
+    | VarInstr VarInstr 
+    | TableInstr TableInstr 
+    | MemoryInstr MemoryInstr 
+    | CtlInstr CtlInstr
 
-  | NumInstr' NumInstr'
-  | TableInstr' TableInstr'
-  | MemoryInstr' MemoryInstr'
-  deriving (Eq, Generic, NFData)
+    | NumInstr' NumInstr'
+    | TableInstr' TableInstr'
+    | MemoryInstr' MemoryInstr'
+    deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 refToExpr :: FuncIdx -> Expr
 refToExpr idx = Expr [RefInstr $ RefFunc idx]
@@ -327,13 +357,14 @@ data Module
              , mems :: [Mem]
              , globals :: [Global]
              , elems :: [Elem]
-             , datacount :: U32
+             , datacount :: Datacount
              , datas :: [Data]
              , start :: Start
              , imports :: [Import]
              , exports :: [Export]
              }
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 -- 2.5.1 Indices
 type TypeIdx = U32
@@ -348,42 +379,56 @@ type LabelIdx = U32
 
 data Code = Code {locals :: [ValType], body :: Expr}
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 newtype Table = Table {_type :: TableType}
-    deriving (Eq, Generic, NFData)
+    deriving (Eq, Generic)
+    deriving anyclass (NFData, T.Print)
 
 newtype Mem = Mem {_type :: MemType}
-    deriving (Eq, Generic, NFData)
+    deriving (Eq, Generic)
+    deriving anyclass (NFData, T.Print)
 
 data Global = Global {_type :: GlobalType, init :: Expr}
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Elem = Elem { refType :: RefType
                   , init :: [Expr]
                   , mode :: ElemMode
                   }
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
+
+data Datacount = NoDatacount | Datacount U32
+    deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data ElemMode
   = EPassive
   | EActive {table :: TableIdx, offset :: Expr}
   | EDeclarative
   deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Data = Data { init :: Bytes, mode :: DataMode} 
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data DataMode = DPassive | DActive { memory :: MemIdx, offset :: Expr}
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Start = NoStart | StartAt FuncIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Export
     = Export { name :: Name
              , desc :: ExportDesc
              }
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data ExportDesc
     = ExportFunc FuncIdx
@@ -391,6 +436,7 @@ data ExportDesc
     | ExportMem MemIdx
     | ExportGlobal GlobalIdx
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data Import
     = Import { _module :: Name
@@ -398,6 +444,7 @@ data Import
              , desc :: ImportDesc
              }
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
 
 data ImportDesc
     = ImportFunc TypeIdx
@@ -405,3 +452,4 @@ data ImportDesc
     | ImportMemory MemType
     | ImportGlobal GlobalType
     deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print

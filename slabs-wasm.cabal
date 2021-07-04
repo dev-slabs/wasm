@@ -115,62 +115,39 @@ library
     , Z-IO
     -- , Z-Botan
 
-test-suite test
+test-suite slabs-wasm-test
   import:           common
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Accumulator.PositionSpec
-      Database.RocksDBSpec
-      MapStoreSpec
-      PGSpec
-      RocksSpec
+      BinarySpec
       Paths_slabs_wasm
-      Slabs.CodeGenSpec
-      Slabs.Network.TransportSpec
   hs-source-dirs:
       test
   default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N 
   build-depends:
       HUnit
-    , aeson
     , ansi-wl-pprint
     , array
-    , attoparsec
     , base >=4.7 && <5
-    , base16-bytestring
     , bytestring
-    , cborg
-    , cereal
-    , cereal-conduit
-    , conduit
-    , conduit-extra
     , containers
-    , cryptonite                     
-    , temporary
     , directory
     , extra
     , filepath
     , deepseq
-    , ethereum-rlp
     , formatting
     , hspec
     , QuickCheck
     , lens
     , memory
     , mtl
-    , nibblestring
-    , pact
     , quickcheck-instances
-    , resourcet
-    , safecopy
-    , scientific
-    , serokell-util
     , slabs-wasm
-    , stm
-    , streaming-commons
     , text
     , universum
-    , unliftio
     , unordered-containers
+    , Z-Data
+    , Z-IO
+  build-tool-depends: hspec-discover:hspec-discover == 2.*

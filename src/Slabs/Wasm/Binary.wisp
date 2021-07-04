@@ -319,7 +319,7 @@ defbin
     0x00 0x61 0x73 0x6D
   
   Version:()
-    0x10 0x00 0x00 0x00
+    0x01 0x00 0x00 0x00
 
   TypeSec: [FuncType]
     1 types:Section(Vec(FuncType)) -> types
@@ -403,9 +403,9 @@ defbin
     0x01 bs:Bytes -> Data bs DPassive
     0x02 x:MemIdx e:Expr bs:Bytes -> Data bs (DActive x e)
 
-  DatacountSec: U32
-    12 x:Section(U32) -> x
-  
+  DatacountSec: Datacount
+    12 x:Section(U32) -> Datacount x
+    -> NoDatacount
 
   Elem
     0x00 e:Expr ys:Vec(FuncIdx) -> Elem FuncRef (RefFuncs ys) (EActive 0 e)
