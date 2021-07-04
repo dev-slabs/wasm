@@ -115,7 +115,7 @@ library
     , Z-IO
     -- , Z-Botan
 
-test-suite slabs-wasm-test
+test-suite spec
   import:           common
   type: exitcode-stdio-1.0
   main-is: Spec.hs

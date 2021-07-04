@@ -61,7 +61,7 @@ decodeBytes = do
   P.take (fromIntegral size)
 
 encodeBytes :: Bytes -> Builder ()
-encodeBytes bs = encodeU32 size >> encodeBytes bs
+encodeBytes bs = encodeU32 size >> B.bytes bs
   where
     size = fromIntegral $ V.length bs
 

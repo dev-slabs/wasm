@@ -19,10 +19,14 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "decode" do
-    it "decode and print" $ withDefaultLogger $ do
+    it "decode / print / encode" $ withDefaultLogger $ do
       getCurrentDirectory >>= putStrLn
       bs <- ZIO.readFile "test/test.wasm"
       let m = P.parse' decodeModule bs
       case m of
         Left errs -> fatal $ B.text $ mconcat errs
-        Right module_ -> info $ B.text . T.toText $ module_
+        Right module_ -> do
+          info $ B.text . T.toText $ module_
+          let bs' = B.build $ encodeModule module_
+          info $ B.bytes bs'
+          bs' `shouldBe` bs
