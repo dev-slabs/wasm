@@ -50,7 +50,7 @@ library
       Paths_slabs_wasm
   hs-source-dirs:
       src
-  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleInstances FunctionalDependencies GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms RankNTypes RecordWildCards StandaloneDeriving TupleSections TypeSynonymInstances ViewPatterns
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleInstances FunctionalDependencies GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms RankNTypes RecordWildCards StandaloneDeriving TupleSections TypeSynonymInstances ViewPatterns
   build-depends:
       aeson
     , ansi-wl-pprint
@@ -109,7 +109,6 @@ library
     , text
     , thread-supervisor
     , thyme
-    , universum
     , unordered-containers
     , Z-Data
     , Z-IO
@@ -124,7 +123,7 @@ test-suite spec
       Paths_slabs_wasm
   hs-source-dirs:
       test
-  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
+  default-extensions: AutoDeriveTypeable BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MonadFailDesugaring MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedStrings PartialTypeSignatures PatternGuards PatternSynonyms PolyKinds RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N 
   build-depends:
       HUnit
@@ -146,7 +145,6 @@ test-suite spec
     , quickcheck-instances
     , slabs-wasm
     , text
-    , universum
     , unordered-containers
     , Z-Data
     , Z-IO

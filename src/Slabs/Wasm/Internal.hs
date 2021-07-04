@@ -1,7 +1,7 @@
 module Slabs.Wasm.Internal  where
 
-import Universum
-import Data.Default
+import Control.Applicative
+import Data.Word
 import Slabs.Data.Codec 
 import Slabs.Wasm.Structure
 

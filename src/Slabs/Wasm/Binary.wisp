@@ -1,7 +1,7 @@
 module Slabs.Wasm.Binary
 
+import Control.Applicative
 imports 
-  Universum
   Slabs.Wasm.Structure
   Slabs.Wasm.Internal
 

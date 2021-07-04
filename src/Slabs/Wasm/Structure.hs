@@ -5,8 +5,9 @@
 
 module Slabs.Wasm.Structure  where
 
-import Universum
 import Control.DeepSeq (NFData)
+import Data.Maybe
+import Data.Word
 import GHC.Generics (Generic)
 import Z.Data.Vector (Bytes)
 import qualified Z.Data.Text as T

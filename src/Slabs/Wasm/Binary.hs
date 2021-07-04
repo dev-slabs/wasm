@@ -1,6 +1,6 @@
 module Slabs.Wasm.Binary  where
 
-import Universum 
+import Control.Applicative 
 import Slabs.Wasm.Structure 
 import Slabs.Wasm.Internal 
 
