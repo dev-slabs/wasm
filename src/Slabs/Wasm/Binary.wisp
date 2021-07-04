@@ -132,8 +132,8 @@ defbin
     11:U32 0x00 -> MemoryFill
 
   NumInstr
-    0x41 n:U32 -> I32Const n
-    0x42 n:U64 -> I64Const n
+    0x41 n:I32 -> I32Const n
+    0x42 n:I64 -> I64Const n
     0x43 z:F32 -> F32Const z
     0x44 z:F64 -> F64Const z
 
@@ -322,12 +322,10 @@ defbin
     0x01 0x00 0x00 0x00
 
   TypeSec: [FuncType]
-    1 types:Section(Vec(FuncType)) -> types
-    -> []
+    types:VecSection(1 FuncType) -> types
   
   ImportSec: [Import]
-    2 imports:Section(Vec(Import)) -> imports
-    -> []
+    imports:VecSection(2 Import) -> imports
   
   Import
     mod:Name nm:Name d:ImportDesc -> Import mod nm d
@@ -339,33 +337,28 @@ defbin
     0x03 gt:GlobalType -> ImportGlobal gt
   
   FuncSec: [TypeIdx]
-    3 x:Section(Vec(TypeIdx)) -> x
-    -> []
+    x:VecSection(3 TypeIdx) -> x
   
   TableSec: [Table]
-    4 tabs:Section(Vec(Table)) -> tabs
-    -> []
+    tabs:VecSection(4 Table) -> tabs
   
   Table
     tt:TableType -> Table tt
   
   MemSec: [Mem]
-    5 mems:Section(Vec(Mem)) -> mems
-    -> []
+    mems:VecSection(5 Mem) -> mems
 
   Mem
     mt:MemType -> Mem mt
 
   GlobalSec: [Global]
-    6 globs:Section(Vec(Global)) -> globs
-    -> []
+    globs:VecSection(6 Global) -> globs
   
   Global
     gt:GlobalType e:Expr -> Global gt e
   
   ExportSec: [Export]
-    7 exs:Section(Vec(Export)) -> exs
-    -> []
+    exs:VecSection(7 Export) -> exs
   
   Export
     nm:Name d:ExportDesc -> Export nm d
@@ -381,22 +374,19 @@ defbin
     -> NoStart
 
   ElemSec: [Elem]
-    9 segs:Section(Vec(Elem)) -> segs
-    -> []
+    segs:VecSection(9 Elem) -> segs
   
   CodeSec: [Code]
-    10 codes:Section(Vec(Code)) -> codes
-    -> []
+    codes:VecSection(10 Embed(Code)) -> codes
   
   Code
-    ts:Vec(ValType) e:Expr -> Code ts e
+    ts:Vec(Locals) e:Expr -> Code ts e
   
-  Locals: [ValType]
+  Locals
     vts:Vec(ValType) -> vts
   
   DataSec: [Data]
-    11 datas:Section(Vec(Data)) -> datas
-    -> []
+    datas:VecSection(11 Data) -> datas
   
   Data
     0x00 e:Expr bs:Bytes -> Data bs (DActive 0 e)

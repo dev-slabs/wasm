@@ -570,10 +570,10 @@ encodeMemoryInstr' MemoryFill
 decodeNumInstr :: Parser NumInstr
 decodeNumInstr
   = "NumInstr" <?> do P.word8 65
-                      n <- decodeU32
+                      n <- decodeI32
                       pure (I32Const n)
                    <|> do P.word8 66
-                          n <- decodeU64
+                          n <- decodeI64
                           pure (I64Const n)
                    <|> do P.word8 67
                           z <- decodeF32
@@ -841,10 +841,10 @@ decodeNumInstr
 encodeNumInstr :: NumInstr -> Builder ()
 encodeNumInstr (I32Const n)
   = do B.word8 65
-       encodeU32 n
+       encodeI32 n
 encodeNumInstr (I64Const n)
   = do B.word8 66
-       encodeU64 n
+       encodeI64 n
 encodeNumInstr (F32Const z)
   = do B.word8 67
        encodeF32 z
@@ -1105,30 +1105,16 @@ encodeVersion
        B.word8 0
 
 decodeTypeSec :: Parser [FuncType]
-decodeTypeSec
-  = "TypeSec" <?> do P.word8 1
-                     types <- decodeSection (decodeVec decodeFuncType)
-                     pure types
-                  <|> pure []
+decodeTypeSec = "TypeSec" <?> decodeVecSection 1 decodeFuncType
 
 encodeTypeSec :: [FuncType] -> Builder ()
-encodeTypeSec [] = pure ()
-encodeTypeSec types
-  = do B.word8 1
-       encodeSection (encodeVec encodeFuncType) types
+encodeTypeSec = encodeVecSection 1 encodeFuncType
 
 decodeImportSec :: Parser [Import]
-decodeImportSec
-  = "ImportSec" <?> do P.word8 2
-                       imports <- decodeSection (decodeVec decodeImport)
-                       pure imports
-                    <|> pure []
+decodeImportSec = "ImportSec" <?> decodeVecSection 2 decodeImport
 
 encodeImportSec :: [Import] -> Builder ()
-encodeImportSec [] = pure ()
-encodeImportSec imports
-  = do B.word8 2
-       encodeSection (encodeVec encodeImport) imports
+encodeImportSec = encodeVecSection 2 encodeImport
 
 decodeImport :: Parser Import
 decodeImport
@@ -1173,30 +1159,16 @@ encodeImportDesc (ImportGlobal gt)
        encodeGlobalType gt
 
 decodeFuncSec :: Parser [TypeIdx]
-decodeFuncSec
-  = "FuncSec" <?> do P.word8 3
-                     x <- decodeSection (decodeVec decodeTypeIdx)
-                     pure x
-                  <|> pure []
+decodeFuncSec = "FuncSec" <?> decodeVecSection 3 decodeTypeIdx
 
 encodeFuncSec :: [TypeIdx] -> Builder ()
-encodeFuncSec [] = pure ()
-encodeFuncSec x
-  = do B.word8 3
-       encodeSection (encodeVec encodeTypeIdx) x
+encodeFuncSec = encodeVecSection 3 encodeTypeIdx
 
 decodeTableSec :: Parser [Table]
-decodeTableSec
-  = "TableSec" <?> do P.word8 4
-                      tabs <- decodeSection (decodeVec decodeTable)
-                      pure tabs
-                   <|> pure []
+decodeTableSec = "TableSec" <?> decodeVecSection 4 decodeTable
 
 encodeTableSec :: [Table] -> Builder ()
-encodeTableSec [] = pure ()
-encodeTableSec tabs
-  = do B.word8 4
-       encodeSection (encodeVec encodeTable) tabs
+encodeTableSec = encodeVecSection 4 encodeTable
 
 decodeTable :: Parser Table
 decodeTable
@@ -1207,17 +1179,10 @@ encodeTable :: Table -> Builder ()
 encodeTable (Table tt) = encodeTableType tt
 
 decodeMemSec :: Parser [Mem]
-decodeMemSec
-  = "MemSec" <?> do P.word8 5
-                    mems <- decodeSection (decodeVec decodeMem)
-                    pure mems
-                 <|> pure []
+decodeMemSec = "MemSec" <?> decodeVecSection 5 decodeMem
 
 encodeMemSec :: [Mem] -> Builder ()
-encodeMemSec [] = pure ()
-encodeMemSec mems
-  = do B.word8 5
-       encodeSection (encodeVec encodeMem) mems
+encodeMemSec = encodeVecSection 5 encodeMem
 
 decodeMem :: Parser Mem
 decodeMem
@@ -1228,17 +1193,10 @@ encodeMem :: Mem -> Builder ()
 encodeMem (Mem mt) = encodeMemType mt
 
 decodeGlobalSec :: Parser [Global]
-decodeGlobalSec
-  = "GlobalSec" <?> do P.word8 6
-                       globs <- decodeSection (decodeVec decodeGlobal)
-                       pure globs
-                    <|> pure []
+decodeGlobalSec = "GlobalSec" <?> decodeVecSection 6 decodeGlobal
 
 encodeGlobalSec :: [Global] -> Builder ()
-encodeGlobalSec [] = pure ()
-encodeGlobalSec globs
-  = do B.word8 6
-       encodeSection (encodeVec encodeGlobal) globs
+encodeGlobalSec = encodeVecSection 6 encodeGlobal
 
 decodeGlobal :: Parser Global
 decodeGlobal
@@ -1252,17 +1210,10 @@ encodeGlobal (Global gt e)
        encodeExpr e
 
 decodeExportSec :: Parser [Export]
-decodeExportSec
-  = "ExportSec" <?> do P.word8 7
-                       exs <- decodeSection (decodeVec decodeExport)
-                       pure exs
-                    <|> pure []
+decodeExportSec = "ExportSec" <?> decodeVecSection 7 decodeExport
 
 encodeExportSec :: [Export] -> Builder ()
-encodeExportSec [] = pure ()
-encodeExportSec exs
-  = do B.word8 7
-       encodeSection (encodeVec encodeExport) exs
+encodeExportSec = encodeVecSection 7 encodeExport
 
 decodeExport :: Parser Export
 decodeExport
@@ -1318,60 +1269,39 @@ encodeStartSec (StartAt x)
        encodeSection encodeFuncIdx x
 
 decodeElemSec :: Parser [Elem]
-decodeElemSec
-  = "ElemSec" <?> do P.word8 9
-                     segs <- decodeSection (decodeVec decodeElem)
-                     pure segs
-                  <|> pure []
+decodeElemSec = "ElemSec" <?> decodeVecSection 9 decodeElem
 
 encodeElemSec :: [Elem] -> Builder ()
-encodeElemSec [] = pure ()
-encodeElemSec segs
-  = do B.word8 9
-       encodeSection (encodeVec encodeElem) segs
+encodeElemSec = encodeVecSection 9 encodeElem
 
 decodeCodeSec :: Parser [Code]
-decodeCodeSec
-  = "CodeSec" <?> do P.word8 10
-                     codes <- decodeSection (decodeVec decodeCode)
-                     pure codes
-                  <|> pure []
+decodeCodeSec = "CodeSec" <?> decodeVecSection 10 (decodeEmbed decodeCode)
 
 encodeCodeSec :: [Code] -> Builder ()
-encodeCodeSec [] = pure ()
-encodeCodeSec codes
-  = do B.word8 10
-       encodeSection (encodeVec encodeCode) codes
+encodeCodeSec = encodeVecSection 10 (encodeEmbed encodeCode)
 
 decodeCode :: Parser Code
 decodeCode
-  = "Code" <?> do ts <- decodeVec decodeValType
+  = "Code" <?> do ts <- decodeVec decodeLocals
                   e <- decodeExpr
                   pure (Code ts e)
 
 encodeCode :: Code -> Builder ()
 encodeCode (Code ts e)
-  = do encodeVec encodeValType ts
+  = do encodeVec encodeLocals ts
        encodeExpr e
 
-decodeLocals :: Parser [ValType]
+decodeLocals :: Parser Locals
 decodeLocals = "Locals" <?> decodeVec decodeValType
 
-encodeLocals :: [ValType] -> Builder ()
+encodeLocals :: Locals -> Builder ()
 encodeLocals = encodeVec encodeValType
 
 decodeDataSec :: Parser [Data]
-decodeDataSec
-  = "DataSec" <?> do P.word8 11
-                     datas <- decodeSection (decodeVec decodeData)
-                     pure datas
-                  <|> pure []
+decodeDataSec = "DataSec" <?> decodeVecSection 11 decodeData
 
 encodeDataSec :: [Data] -> Builder ()
-encodeDataSec [] = pure ()
-encodeDataSec datas
-  = do B.word8 11
-       encodeSection (encodeVec encodeData) datas
+encodeDataSec = encodeVecSection 11 encodeData
 
 decodeData :: Parser Data
 decodeData

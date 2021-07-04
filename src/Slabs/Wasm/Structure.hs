@@ -378,7 +378,9 @@ type DataIdx = U32
 type LocalIdx = U32
 type LabelIdx = U32
 
-data Code = Code {locals :: [ValType], body :: Expr}
+type Locals = [ValType]
+
+data Code = Code {locals :: [Locals], body :: Expr}
     deriving (Eq, Generic, NFData)
     deriving anyclass T.Print
 

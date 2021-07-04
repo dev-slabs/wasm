@@ -27,5 +27,5 @@ spec = do
         Right module_ -> do
           printStdLn module_
           let bs' = B.build $ encodeModule module_
-          putStdLn $ B.bytes bs'
+          -- putStdLn $ B.bytes bs'
           bs' `shouldBe` bs
