@@ -53,7 +53,11 @@ defbin
     0x0B -> []
     0x05 ins:*(Instr) 0x0B -> ins
 
-  CtlInstr
+  MemArg
+    a:U32 b:U32 -> MemArg a b
+  
+  Instr
+    ; CtlInstr
     0x00              -> Unreachable
     0x01              -> Nop
     0x02 bt:BlockType ins:*(Instr) 0x0B    -> Block bt ins
@@ -66,39 +70,23 @@ defbin
     0x10 x:FuncIdx  -> Call x
     0x11 y:TypeIdx x:TableIdx -> CallIndirect x y
 
-  RefInstr
-    0xD0 t:RefType  -> RefNull t
-    0xD1            -> RefIsNull
-    0xD2 x:FuncIdx  -> RefFunc x
-
-  ParamInstr
+    ; ParamInstr
     0x1A    -> Drop
     0x1B    -> Select []
     0x1C ts:Vec(ValType) -> Select ts
   
-  VarInstr
+    ; VarInstr
     0x20 x:LocalIdx -> LocalGet x
     0x21 x:LocalIdx -> LocalSet x
     0x22 x:LocalIdx -> LocalTee x
     0x23 x:GlobalIdx -> GlobalGet x
     0x24 x:GlobalIdx -> GlobalSet x
 
-  TableInstr
+    ; TableInstr
     0x25 x:TableIdx -> TableGet x
     0x26 x:TableIdx -> TableSet x
   
-  TableInstr'
-    12:U32 y:ElemIdx x:TableIdx -> TableInit x y
-    13:U32 x:ElemIdx -> ElemDrop x
-    14:U32 x:TableIdx y:TableIdx -> TableCopy x y
-    15:U32 x:TableIdx -> TableGrow x
-    16:U32 x:TableIdx -> TableSize x
-    17:U32 x:TableIdx -> TableFill x
-  
-  MemArg
-    a:U32 b:U32 -> MemArg a b
-  
-  MemoryInstr
+    ; MemoryInstr
     0x28 m:MemArg -> I32Load m
     0x29 m:MemArg -> I64Load m
     0x2A m:MemArg -> F32Load m
@@ -125,13 +113,13 @@ defbin
     0x3F 0x00 -> MemorySize
     0x40 0x00 -> MemoryGrow
   
-  MemoryInstr'
-    8:U32 x:DataIdx 0x00 -> MemoryInit x
-    9:U32 x:DataIdx -> DataDrop x
-    10:U32 0x00 0x00 -> MemoryCopy
-    11:U32 0x00 -> MemoryFill
+    ; MemoryInstr'
+    0xFC 8:U32 x:DataIdx 0x00 -> MemoryInit x
+    0xFC 9:U32 x:DataIdx -> DataDrop x
+    0xFC 10:U32 0x00 0x00 -> MemoryCopy
+    0xFC 11:U32 0x00 -> MemoryFill
 
-  NumInstr
+    ; NumInstr
     0x41 n:I32 -> I32Const n
     0x42 n:I64 -> I64Const n
     0x43 z:F32 -> F32Const z
@@ -274,16 +262,29 @@ defbin
     0xC3 -> I64Extend16S 
     0xC4 -> I64Extend32S
 
-  NumInstr'
-    0:U32 -> I32TruncSatF32S 
-    1:U32 -> I32TruncSatF32U 
-    2:U32 -> I32TruncSatF64S 
-    3:U32 -> I32TruncSatF64U 
-    4:U32 -> I64TruncSatF32S 
-    5:U32 -> I64TruncSatF32U 
-    6:U32 -> I64TruncSatF64S 
-    7:U32 -> I64TruncSatF64U
+    ; RefInstr
+    0xD0 t:RefType  -> RefNull t
+    0xD1            -> RefIsNull
+    0xD2 x:FuncIdx  -> RefFunc x
 
+    ; NumInstr'
+    0xFC 0:U32 -> I32TruncSatF32S 
+    0xFC 1:U32 -> I32TruncSatF32U 
+    0xFC 2:U32 -> I32TruncSatF64S 
+    0xFC 3:U32 -> I32TruncSatF64U 
+    0xFC 4:U32 -> I64TruncSatF32S 
+    0xFC 5:U32 -> I64TruncSatF32U 
+    0xFC 6:U32 -> I64TruncSatF64S 
+    0xFC 7:U32 -> I64TruncSatF64U
+
+    ; TableInstr'
+    0xFC 12:U32 y:ElemIdx x:TableIdx -> TableInit x y
+    0xFC 13:U32 x:ElemIdx -> ElemDrop x
+    0xFC 14:U32 x:TableIdx y:TableIdx -> TableCopy x y
+    0xFC 15:U32 x:TableIdx -> TableGrow x
+    0xFC 16:U32 x:TableIdx -> TableSize x
+    0xFC 17:U32 x:TableIdx -> TableFill x
+  
   Expr
     ins:*(Instr) 0x0B -> Expr ins
   
@@ -414,35 +415,3 @@ defbin
       . mems:MemSec globals:GlobalSec exports:ExportSec start:StartSec
       . elems:ElemSec m:DatacountSec codes:CodeSec datas:DataSec
       . -> Module types typeidxs codes tables mems globals elems m datas start imports exports
-
-%%
-  -- 解析Instr
-  decodeInstr :: Parser Instr
-  decodeInstr = NumInstr <$> decodeNumInstr
-    <|> RefInstr <$> decodeRefInstr
-    <|> ParamInstr <$> decodeParamInstr
-    <|> VarInstr <$> decodeVarInstr
-    <|> TableInstr <$> decodeTableInstr
-    <|> MemoryInstr <$> decodeMemoryInstr
-    <|> CtlInstr <$> decodeCtlInstr
-    <|> do
-      P.word8 0xFC
-      NumInstr' <$> decodeNumInstr'
-        <|> TableInstr' <$> decodeTableInstr'
-        <|> MemoryInstr' <$> decodeMemoryInstr'
-
-%%
-  encodeInstr :: Instr -> Builder ()
-  encodeInstr = go
-    where
-      go (NumInstr i) = encodeNumInstr i
-      go (RefInstr i) = encodeRefInstr i
-      go (ParamInstr i) = encodeParamInstr i
-      go (VarInstr i) = encodeVarInstr i
-      go (TableInstr i) = encodeTableInstr i
-      go (MemoryInstr i) = encodeMemoryInstr i
-      go (CtlInstr i) = encodeCtlInstr i
-
-      go (NumInstr' i) = B.word8 0xFC >> encodeNumInstr' i
-      go (TableInstr' i) = B.word8 0xFC >> encodeTableInstr' i
-      go (MemoryInstr' i) = B.word8 0xFC >> encodeMemoryInstr' i

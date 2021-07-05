@@ -62,75 +62,6 @@ data ExternType
 
 -- 2.4 Instructinos
 -- 2.4.1 Numeric Instructions
-data NumInstr 
-    = I32Const Word32
-    | I64Const Word64
-    | F32Const Float
-    | F64Const Double
-
-    | I32UnOp IUnOp
-    | I64UnOp IUnOp
-    | F32UnOp FUnOp
-    | F64UnOp FUnOp
-
-    | I32BinOp IBinOp
-    | I64BinOp IBinOp
-    | F32BinOp FBinOp
-    | F64BinOp FBinOp
-
-    | I32Eqz
-    | I64Eqz
-
-    | I32RelOp IRelOp
-    | I64RelOp IRelOp
-    | F32RelOp FRelOp
-    | F64RelOp FRelOp
-
-    | I32WrapI64
-    | I32TruncF32U
-    | I32TruncF32S
-    | I32TruncF64U
-    | I32TruncF64S
-    | I64ExtendI32S
-    | I64ExtendI32U
-    | I64TruncF32U
-    | I64TruncF32S
-    | I64TruncF64U
-    | I64TruncF64S
-    | F32ConvertI32S
-    | F32ConvertI32U
-    | F32ConvertI64S
-    | F32ConvertI64U
-    | F32DemoteF64
-    | F64ConvertI32S
-    | F64ConvertI32U
-    | F64ConvertI64S
-    | F64ConvertI64U
-    | F64PromoteF32
-    | I32ReinterpretF32
-    | I64ReinterpretF64
-    | F32ReinterpretI32
-    | F64ReinterpretI64
-    | I32Extend8S
-    | I32Extend16S
-    | I64Extend8S
-    | I64Extend16S
-    | I64Extend32S
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
-
-data NumInstr'
-    = I32TruncSatF32S
-    | I32TruncSatF32U
-    | I32TruncSatF64S
-    | I32TruncSatF64U
-    | I64TruncSatF32S
-    | I64TruncSatF32U
-    | I64TruncSatF64S
-    | I64TruncSatF64U
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
-
 data IUnOp
     = IClz
     | ICtz
@@ -203,58 +134,105 @@ data FRelOp
     deriving (Eq, Generic, NFData)
     deriving anyclass T.Print
 
--- 2.4.2 Reference Instructions
-data RefInstr 
-    = RefNull RefType
+data Instr 
+    = I32Const Word32
+    | I64Const Word64
+    | F32Const Float
+    | F64Const Double
+
+    | I32UnOp IUnOp
+    | I64UnOp IUnOp
+    | F32UnOp FUnOp
+    | F64UnOp FUnOp
+
+    | I32BinOp IBinOp
+    | I64BinOp IBinOp
+    | F32BinOp FBinOp
+    | F64BinOp FBinOp
+
+    | I32Eqz
+    | I64Eqz
+
+    | I32RelOp IRelOp
+    | I64RelOp IRelOp
+    | F32RelOp FRelOp
+    | F64RelOp FRelOp
+
+    | I32WrapI64
+    | I32TruncF32U
+    | I32TruncF32S
+    | I32TruncF64U
+    | I32TruncF64S
+    | I64ExtendI32S
+    | I64ExtendI32U
+    | I64TruncF32U
+    | I64TruncF32S
+    | I64TruncF64U
+    | I64TruncF64S
+    | F32ConvertI32S
+    | F32ConvertI32U
+    | F32ConvertI64S
+    | F32ConvertI64U
+    | F32DemoteF64
+    | F64ConvertI32S
+    | F64ConvertI32U
+    | F64ConvertI64S
+    | F64ConvertI64U
+    | F64PromoteF32
+    | I32ReinterpretF32
+    | I64ReinterpretF64
+    | F32ReinterpretI32
+    | F64ReinterpretI64
+    | I32Extend8S
+    | I32Extend16S
+    | I64Extend8S
+    | I64Extend16S
+    | I64Extend32S
+
+    | I32TruncSatF32S
+    | I32TruncSatF32U
+    | I32TruncSatF64S
+    | I32TruncSatF64U
+    | I64TruncSatF32S
+    | I64TruncSatF32U
+    | I64TruncSatF64S
+    | I64TruncSatF64U
+
+    -- 2.4.2 Reference Instructions
+    -- RefInstr 
+    | RefNull RefType
     | RefIsNull
     | RefFunc FuncIdx
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
--- 2.4.3 Parametric Instructions
-data ParamInstr
-    = Drop
+    -- 2.4.3 Parametric Instructions
+    -- ParamInstr
+    | Drop
     | Select [ValType]
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
--- 2.4.4 Variable Instructions
-data VarInstr 
-    = LocalGet LocalIdx
+    -- 2.4.4 Variable Instructions
+    -- VarInstr 
+    | LocalGet LocalIdx
     | LocalSet LocalIdx
     | LocalTee LocalIdx
     | GlobalGet GlobalIdx
     | GlobalSet GlobalIdx
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
--- 2.4.5 Table Instructions
-data TableInstr 
-    = TableGet TableIdx
+    -- 2.4.5 Table Instructions
+    -- TableInstr 
+    | TableGet TableIdx
     | TableSet TableIdx
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
-data TableInstr'
-    = TableSize TableIdx
+    -- TableInstr'
+    | TableSize TableIdx
     | TableGrow TableIdx
     | TableFill TableIdx
     | TableCopy TableIdx TableIdx
     | TableInit TableIdx ElemIdx
     | ElemDrop ElemIdx
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
--- 2.4.6 Memory Instructions
-data MemArg
-    = MemArg { offset :: U32
-             , align :: U32
-             }
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
-
-data MemoryInstr 
-    = I32Load MemArg
+    -- 2.4.6 Memory Instructions
+    -- MemoryInstr 
+    | I32Load MemArg
     | I64Load MemArg
     | F32Load MemArg
     | F64Load MemArg
@@ -282,24 +260,15 @@ data MemoryInstr
     | I64Store32 MemArg
     | MemorySize
     | MemoryGrow
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
-data MemoryInstr'
-    = MemoryFill
+    -- MemoryInstr'
+    | MemoryFill
     | MemoryCopy
     | MemoryInit DataIdx
     | DataDrop DataIdx
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
 
--- 2.4.7 Control Instructions
-data BlockType = BlockEmptyType | TypeIdx TypeIdx | ValType ValType
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
-
-data CtlInstr 
-    = Nop
+    -- CtlInstr 
+    | Nop
     | Unreachable
     | Block BlockType [Instr]
     | Loop BlockType [Instr]
@@ -313,34 +282,31 @@ data CtlInstr
     deriving (Eq, Generic, NFData)
     deriving anyclass T.Print
 
+data MemArg
+    = MemArg { offset :: U32
+             , align :: U32
+             }
+    deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
+
+-- 2.4.7 Control Instructions
+data BlockType = BlockEmptyType | TypeIdx TypeIdx | ValType ValType
+    deriving (Eq, Generic, NFData)
+    deriving anyclass T.Print
+
 newtype Expr = Expr [Instr]
     deriving (Eq, Generic)
     deriving anyclass (NFData, T.Print)
 
-data Instr 
-    = NumInstr NumInstr
-    | RefInstr RefInstr 
-    | ParamInstr ParamInstr
-    | VarInstr VarInstr 
-    | TableInstr TableInstr 
-    | MemoryInstr MemoryInstr 
-    | CtlInstr CtlInstr
-
-    | NumInstr' NumInstr'
-    | TableInstr' TableInstr'
-    | MemoryInstr' MemoryInstr'
-    deriving (Eq, Generic, NFData)
-    deriving anyclass T.Print
-
 refToExpr :: FuncIdx -> Expr
-refToExpr idx = Expr [RefInstr $ RefFunc idx]
+refToExpr idx = Expr [RefFunc idx]
 
 exprsToRefs :: [Expr] -> Maybe [FuncIdx]
 exprsToRefs exprs
  | length exprs == length idxs = Just idxs
  | otherwise = Nothing
  where
-    go (Expr [RefInstr (RefFunc idx)]) = Just idx
+    go (Expr [RefFunc idx]) = Just idx
     go _ = Nothing
 
     idxs = mapMaybe go exprs
